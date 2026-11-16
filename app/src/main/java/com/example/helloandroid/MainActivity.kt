@@ -422,6 +422,9 @@ private fun processReceipt(source: Bitmap): Bitmap {
     // 3. Rotasi -90 derajat
     val rotated = rotateBitmap(trimmed, -90f)
 
+    status.text =
+    "Trim: ${trimmed.width}x${trimmed.height} | Rotasi: ${rotated.width}x${rotated.height}"
+
     // 4. Resize lebar menjadi 384 pixel
     val newHeight = (
         rotated.height * 384f / rotated.width
