@@ -179,6 +179,13 @@ override fun onCreate(savedInstanceState: Bundle?) {
         isAllCaps = false
         setTextColor(white)
         background = rounded(blue, 14f)
+        
+        gravity = Gravity.CENTER
+        textSize = 14f
+        typeface = Typeface.DEFAULT_BOLD
+        setTextColor(Color.WHITE)
+        backgroundTintList = null
+        
         setOnClickListener {
             findPrinter()
         }
@@ -190,6 +197,13 @@ override fun onCreate(savedInstanceState: Bundle?) {
         isAllCaps = false
         setTextColor(white)
         background = rounded(Color.rgb(48, 79, 110), 14f)
+        
+        gravity = Gravity.CENTER
+        textSize = 14f
+        typeface = Typeface.DEFAULT_BOLD
+        setTextColor(Color.WHITE)
+        backgroundTintList = null
+        
         setOnClickListener {
             connectPrinter()
         }
@@ -272,6 +286,13 @@ override fun onCreate(savedInstanceState: Bundle?) {
         isAllCaps = false
         setTextColor(white)
         background = rounded(blue, 16f)
+        
+        gravity = Gravity.CENTER
+        textSize = 14f
+        typeface = Typeface.DEFAULT_BOLD
+        setTextColor(Color.WHITE)
+        backgroundTintList = null
+        
 
         setOnClickListener {
             val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
@@ -298,6 +319,13 @@ override fun onCreate(savedInstanceState: Bundle?) {
         isEnabled = false
         setTextColor(white)
         background = rounded(green, 16f)
+        
+        gravity = Gravity.CENTER
+        textSize = 14f
+        typeface = Typeface.DEFAULT_BOLD
+        setTextColor(Color.WHITE)
+        backgroundTintList = null
+        
 
         setOnClickListener {
             printReceipt()
