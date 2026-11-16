@@ -216,13 +216,13 @@ val searchButton = TextView(this).apply {
         searchButton,
         LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.MATCH_PARENT,
-            52
+            60
         )
     )
 
     val connectParams = LinearLayout.LayoutParams(
         LinearLayout.LayoutParams.MATCH_PARENT,
-        52
+        60
     ).apply {
         topMargin = 8
     }
