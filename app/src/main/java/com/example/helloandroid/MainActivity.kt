@@ -177,20 +177,20 @@ override fun onCreate(savedInstanceState: Bundle?) {
 val searchButton = Button(this).apply {
     isAllCaps = false
     background = rounded(blue, 14f)
-    backgroundTintList = null
+    // HAPUS: backgroundTintList = null  <-- Hapus baris ini
 
     gravity = Gravity.CENTER
     textSize = 14f
     typeface = Typeface.DEFAULT_BOLD
     setTextColor(Color.WHITE)
 
-    // Paksa set teks setelah styling
-    setText("SCAN DEVICE")
+    text = "SCAN DEVICE"
 
     setOnClickListener {
         findPrinter()
     }
 }
+
 
     // Tombol koneksi
     connectButton = Button(this).apply {
