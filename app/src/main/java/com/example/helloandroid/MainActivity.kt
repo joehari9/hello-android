@@ -174,22 +174,23 @@ override fun onCreate(savedInstanceState: Bundle?) {
     connectionPanel.addView(status)
 
     // Tombol pencarian
-    val searchButton = Button(this).apply {
-        text = "SCAN DEVICE"
-        isAllCaps = false
-        setTextColor(white)
-        background = rounded(blue, 14f)
-        
-        gravity = Gravity.CENTER
-        textSize = 14f
-        typeface = Typeface.DEFAULT_BOLD
-        setTextColor(Color.WHITE)
-        backgroundTintList = null
-        
-        setOnClickListener {
-            findPrinter()
-        }
+val searchButton = Button(this).apply {
+    isAllCaps = false
+    background = rounded(blue, 14f)
+    backgroundTintList = null
+
+    gravity = Gravity.CENTER
+    textSize = 14f
+    typeface = Typeface.DEFAULT_BOLD
+    setTextColor(Color.WHITE)
+
+    // Paksa set teks setelah styling
+    setText("SCAN DEVICE")
+
+    setOnClickListener {
+        findPrinter()
     }
+}
 
     // Tombol koneksi
     connectButton = Button(this).apply {
