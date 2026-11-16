@@ -409,20 +409,24 @@ private fun processReceipt(source: Bitmap): Bitmap {
     var minX = cropped.width
     var maxX = -1
 
-    // Abaikan baris yang hanya berisi garis bingkai
-    for (y in rowCounts.indices) {
-        if (rowCounts[y] > 2) {
-            minY = minOf(minY, y)
-            maxY = maxOf(maxY, y)
-        }
+    // Abaikan garis panjang dari bingkai PDF
+for (y in rowCounts.indices) {
+    if (rowCounts[y] > 2 &&
+        rowCounts[y] < cropped.width * 0.80
+    ) {
+        minY = minOf(minY, y)
+        maxY = maxOf(maxY, y)
     }
+}
 
-    for (x in colCounts.indices) {
-        if (colCounts[x] > 2) {
-            minX = minOf(minX, x)
-            maxX = maxOf(maxX, x)
-        }
+for (x in colCounts.indices) {
+    if (colCounts[x] > 2 &&
+        colCounts[x] < cropped.height * 0.80
+    ) {
+        minX = minOf(minX, x)
+        maxX = maxOf(maxX, x)
     }
+}
 
     require(maxX >= minX && maxY >= minY) {
         "Isi resi tidak ditemukan"
