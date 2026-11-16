@@ -248,10 +248,10 @@ override fun onCreate(savedInstanceState: Bundle?) {
     layout.addView(footer)
 
     // Scroll agar nyaman di layar kecil
-    val scrollView = ScrollView(this).apply {
-        fillViewport = true
-        addView(layout)
-    }
+val scrollView = ScrollView(this).apply {
+    setFillViewport(true)
+    addView(layout)
+}
 
     setContentView(scrollView)
 }
