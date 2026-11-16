@@ -21,6 +21,10 @@ import android.graphics.pdf.PdfRenderer
 import android.net.Uri
 import android.widget.ImageView
 import android.widget.ScrollView
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.Typeface
 
 class MainActivity : Activity() {
 
