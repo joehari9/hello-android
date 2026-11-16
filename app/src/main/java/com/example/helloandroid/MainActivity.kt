@@ -90,11 +90,11 @@ class MainActivity : Activity() {
         }
 
         printButton = Button(this).apply {
-            text = "Test Print"
-            isEnabled = false
-            setOnClickListener {
-                testPrint()
-            }
+    text = "Cetak Resi"
+    isEnabled = false
+    setOnClickListener {
+        printReceipt()
+    }
         }
 val selectPdfButton = Button(this).apply {
     text = "Pilih PDF Resi"
