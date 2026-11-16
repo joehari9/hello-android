@@ -43,6 +43,8 @@ class MainActivity : Activity() {
     companion object {
         private const val REQUEST_BT = 100
         private const val REQUEST_PDF = 200
+        private const val APP_WATERMARK =
+        "Generate by: JZ Receipt Printer"
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -294,7 +296,10 @@ private fun printReceipt() {
         status.text = "Pilih PDF resi terlebih dahulu"
         return
     }
-
+    val printBitmap = addWatermark(
+    bitmap,
+    APP_WATERMARK
+)
     val activeSocket = socket
 
     if (activeSocket == null || !activeSocket.isConnected) {
@@ -656,5 +661,52 @@ private fun rotateBitmap(
         true
     )
 }
+
+private fun addWatermark(
+    source: Bitmap,
+    watermark: String
+): Bitmap {
+
+    val result = Bitmap.createBitmap(
+        source.width,
+        source.height + 55,
+        Bitmap.Config.ARGB_8888
+    )
+
+    val canvas = Canvas(result)
+    canvas.drawColor(android.graphics.Color.WHITE)
+
+    canvas.drawBitmap(source, 0f, 0f, null)
+
+    if (watermark.isNotBlank()) {
+
+        val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = android.graphics.Color.BLACK
+            textSize = 26f
+            typeface = Typeface.create(
+                Typeface.DEFAULT,
+                Typeface.BOLD
+            )
+            textAlign = Paint.Align.CENTER
+        }
+
+        val maxWidth = source.width - 16f
+        val measuredWidth = paint.measureText(watermark)
+
+        if (measuredWidth > maxWidth) {
+            paint.textSize *= maxWidth / measuredWidth
+        }
+
+        canvas.drawText(
+            watermark,
+            source.width / 2f,
+            source.height + 36f,
+            paint
+        )
+    }
+
+    return result
+}
+
 
 }
