@@ -352,7 +352,7 @@ private fun printReceipt() {
                 for (row in 0 until chunkHeight) {
                     for (x in 0 until width) {
 
-                        val pixel = bitmap.getPixel(x, y + row)
+                        val pixel = printBitmap.getPixel(x, y + row)
 
                         val r = android.graphics.Color.red(pixel)
                         val g = android.graphics.Color.green(pixel)
