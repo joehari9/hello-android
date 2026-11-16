@@ -174,26 +174,24 @@ override fun onCreate(savedInstanceState: Bundle?) {
     connectionPanel.addView(status)
 
     // Tombol pencarian
-val searchButton = androidx.appcompat.widget.AppCompatButton(this).apply {
-    isAllCaps = false
-    background = rounded(blue, 14f)
-    
-    // Hapus backgroundTintList
-    
-    gravity = Gravity.CENTER
+val searchButton = TextView(this).apply {
+    text = "SCAN DEVICE"
     textSize = 14f
     typeface = Typeface.DEFAULT_BOLD
-    
-    // Gunakan setTextColor secara eksplisit
+    gravity = Gravity.CENTER
     setTextColor(Color.WHITE)
-    
-    // Gunakan properti .text langsung atau setText()
-    text = "SCAN DEVICE"
+
+    background = rounded(blue, 14f)
+
+    isClickable = true
+    isFocusable = true
+    setPadding(12, 12, 12, 12)
 
     setOnClickListener {
         findPrinter()
     }
 }
+
 
 
     // Tombol koneksi
