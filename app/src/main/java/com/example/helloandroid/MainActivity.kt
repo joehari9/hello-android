@@ -25,6 +25,8 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Typeface
+import android.graphics.drawable.GradientDrawable
+import android.view.View
 
 class MainActivity : Activity() {
 
@@ -51,7 +53,7 @@ class MainActivity : Activity() {
         "Generate by: JZ Receipt Printer"
     }
 
-
+  // onCreate start
 override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
 
@@ -256,6 +258,7 @@ val scrollView = ScrollView(this).apply {
     setContentView(scrollView)
 }
 
+  // onCreate end
 
     private fun hasBluetoothPermission(): Boolean {
         if (Build.VERSION.SDK_INT < 31) return true
