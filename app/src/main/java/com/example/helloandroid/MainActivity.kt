@@ -286,6 +286,121 @@ pdfPreview = ImageView(this).apply {
         }.start()
     }
 
+private fun printReceipt() {
+
+    val bitmap = processedBitmap
+
+    if (bitmap == null) {
+        status.text = "Pilih PDF resi terlebih dahulu"
+        return
+    }
+
+    val activeSocket = socket
+
+    if (activeSocket == null || !activeSocket.isConnected) {
+        status.text = "Printer belum terhubung"
+        return
+    }
+
+    status.text = "Sedang mencetak resi..."
+
+    Thread {
+        try {
+            val output = activeSocket.outputStream
+
+            // Inisialisasi printer dan posisi tengah
+            output.write(
+                byteArrayOf(
+                    0x1B, 0x40,
+                    0x1B, 0x61, 0x01
+                )
+            )
+
+            val width = bitmap.width
+            val height = bitmap.height
+            val widthBytes = width / 8
+
+            // Kirim gambar per 16 baris
+            var y = 0
+
+            while (y < height) {
+
+                val chunkHeight = minOf(16, height - y)
+
+                // Perintah ESC/POS GS v 0
+                output.write(
+                    byteArrayOf(
+                        0x1D, 0x76, 0x30, 0x00,
+                        (widthBytes and 0xFF).toByte(),
+                        ((widthBytes shr 8) and 0xFF).toByte(),
+                        (chunkHeight and 0xFF).toByte(),
+                        ((chunkHeight shr 8) and 0xFF).toByte()
+                    )
+                )
+
+                val imageData = ByteArray(widthBytes * chunkHeight)
+
+                for (row in 0 until chunkHeight) {
+                    for (x in 0 until width) {
+
+                        val pixel = bitmap.getPixel(x, y + row)
+
+                        val r = android.graphics.Color.red(pixel)
+                        val g = android.graphics.Color.green(pixel)
+                        val b = android.graphics.Color.blue(pixel)
+
+                        val gray = (
+                            0.299 * r +
+                            0.587 * g +
+                            0.114 * b
+                        ).toInt()
+
+                        if (gray < 128) {
+
+                            val byteIndex =
+                                row * widthBytes + x / 8
+
+                            val bit = 7 - (x % 8)
+
+                            imageData[byteIndex] =
+                                (imageData[byteIndex].toInt() or
+                                (1 shl bit)).toByte()
+                        }
+                    }
+                }
+
+                output.write(imageData)
+                output.flush()
+
+                Thread.sleep(10)
+
+                y += chunkHeight
+            }
+
+            // Feed dan potong kertas
+            output.write(
+                byteArrayOf(
+                    0x1B, 0x64, 0x04,
+                    0x1D, 0x56, 0x41, 0x03
+                )
+            )
+
+            output.flush()
+
+            runOnUiThread {
+                status.text = "Resi berhasil dikirim ke printer!"
+            }
+
+        } catch (e: Exception) {
+            runOnUiThread {
+                status.text = "Gagal mencetak: ${e.message}"
+            }
+        }
+
+    }.start()
+}
+
+    
     override fun onDestroy() {
         try {
             socket?.close()
