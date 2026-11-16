@@ -325,8 +325,8 @@ private fun printReceipt() {
                 )
             )
 
-            val width = bitmap.width
-            val height = bitmap.height
+            val width = printBitmap.width
+            val height = printBitmap.height
             val widthBytes = width / 8
 
             // Kirim gambar per 16 baris
