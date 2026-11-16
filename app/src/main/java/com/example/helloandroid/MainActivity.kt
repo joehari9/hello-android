@@ -15,6 +15,12 @@ import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
 import java.util.UUID
+import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.pdf.PdfRenderer
+import android.net.Uri
+import android.widget.ImageView
+import android.widget.ScrollView
 
 class MainActivity : Activity() {
 
@@ -27,7 +33,7 @@ class MainActivity : Activity() {
     private var adapter: BluetoothAdapter? = null
     private var printer: BluetoothDevice? = null
     private var socket: BluetoothSocket? = null
-
+    private lateinit var pdfPreview: ImageView
     private lateinit var status: TextView
     private lateinit var deviceInfo: TextView
     private lateinit var connectButton: Button
@@ -35,6 +41,7 @@ class MainActivity : Activity() {
 
     companion object {
         private const val REQUEST_BT = 100
+        private const val REQUEST_PDF = 200
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -88,6 +95,23 @@ class MainActivity : Activity() {
                 testPrint()
             }
         }
+val selectPdfButton = Button(this).apply {
+    text = "Pilih PDF Resi"
+
+    setOnClickListener {
+        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+            addCategory(Intent.CATEGORY_OPENABLE)
+            type = "application/pdf"
+        }
+
+        startActivityForResult(intent, REQUEST_PDF)
+    }
+}
+
+pdfPreview = ImageView(this).apply {
+    adjustViewBounds = true
+    scaleType = ImageView.ScaleType.FIT_CENTER
+}
 
         layout.addView(title)
         layout.addView(deviceInfo)
@@ -95,6 +119,14 @@ class MainActivity : Activity() {
         layout.addView(searchButton)
         layout.addView(connectButton)
         layout.addView(printButton)
+        layout.addView(selectPdfButton)
+        layout.addView(
+    pdfPreview,
+    LinearLayout.LayoutParams(
+        LinearLayout.LayoutParams.MATCH_PARENT,
+        LinearLayout.LayoutParams.WRAP_CONTENT
+    )
+)
 
         setContentView(layout)
     }
@@ -260,5 +292,59 @@ class MainActivity : Activity() {
         }
 
         super.onDestroy()
+    }
+    // Fungsi untuk menerima file PDF yang dipilih
+    override fun onActivityResult(
+        requestCode: Int,
+        resultCode: Int,
+        data: Intent?
+    ) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if (requestCode == REQUEST_PDF &&
+            resultCode == RESULT_OK
+        ) {
+            val uri = data?.data ?: return
+            renderPdf(uri)
+        }
+    }
+
+    // Fungsi membaca dan menampilkan halaman pertama PDF
+    private fun renderPdf(uri: Uri) {
+        try {
+            contentResolver.openFileDescriptor(uri, "r")?.use { pfd ->
+
+                PdfRenderer(pfd).use { renderer ->
+
+                    if (renderer.pageCount == 0) {
+                        throw Exception("PDF tidak memiliki halaman")
+                    }
+
+                    renderer.openPage(0).use { page ->
+
+                        val bitmap = Bitmap.createBitmap(
+                            page.width * 2,
+                            page.height * 2,
+                            Bitmap.Config.ARGB_8888
+                        )
+
+                        page.render(
+                            bitmap,
+                            null,
+                            null,
+                            PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY
+                        )
+
+                        pdfPreview.setImageBitmap(bitmap)
+
+                        status.text =
+                            "PDF berhasil dibuka. Siap diproses."
+                    }
+                }
+            } ?: throw Exception("Tidak dapat membuka file PDF")
+
+        } catch (e: Exception) {
+            status.text = "Gagal membaca PDF: ${e.message}"
+        }
     }
 }
