@@ -34,6 +34,7 @@ class MainActivity : Activity() {
     private var printer: BluetoothDevice? = null
     private var socket: BluetoothSocket? = null
     private lateinit var pdfPreview: ImageView
+    private var processedBitmap: Bitmap? = null
     private lateinit var status: TextView
     private lateinit var deviceInfo: TextView
     private lateinit var connectButton: Button
@@ -310,41 +311,210 @@ pdfPreview = ImageView(this).apply {
     }
 
     // Fungsi membaca dan menampilkan halaman pertama PDF
-    private fun renderPdf(uri: Uri) {
-        try {
-            contentResolver.openFileDescriptor(uri, "r")?.use { pfd ->
+ 
+private fun renderPdf(uri: Uri) {
+    try {
+        contentResolver.openFileDescriptor(uri, "r")?.use { pfd ->
 
-                PdfRenderer(pfd).use { renderer ->
+            PdfRenderer(pfd).use { renderer ->
 
-                    if (renderer.pageCount == 0) {
-                        throw Exception("PDF tidak memiliki halaman")
-                    }
-
-                    renderer.openPage(0).use { page ->
-
-                        val bitmap = Bitmap.createBitmap(
-                            page.width * 2,
-                            page.height * 2,
-                            Bitmap.Config.ARGB_8888
-                        )
-
-                        page.render(
-                            bitmap,
-                            null,
-                            null,
-                            PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY
-                        )
-
-                        pdfPreview.setImageBitmap(bitmap)
-
-                        status.text =
-                            "PDF berhasil dibuka. Siap diproses."
-                    }
+                if (renderer.pageCount == 0) {
+                    throw Exception("PDF tidak memiliki halaman")
                 }
-            } ?: throw Exception("Tidak dapat membuka file PDF")
 
-        } catch (e: Exception) {
-            status.text = "Gagal membaca PDF: ${e.message}"
+                renderer.openPage(0).use { page ->
+
+                    // Render mengikuti skala aplikasi web: 150 / 72
+                    val renderWidth =
+                        (page.width * 150f / 72f).toInt()
+
+                    val renderHeight =
+                        (page.height * 150f / 72f).toInt()
+
+                    val sourceBitmap = Bitmap.createBitmap(
+                        renderWidth,
+                        renderHeight,
+                        Bitmap.Config.ARGB_8888
+                    )
+
+                    page.render(
+                        sourceBitmap,
+                        null,
+                        null,
+                        PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY
+                    )
+
+                    // Proses gambar resi
+                    val result = processReceipt(sourceBitmap)
+
+                    processedBitmap = result
+
+                    // Tampilkan hasil pengolahan
+                    pdfPreview.setImageBitmap(result)
+
+                    status.text =
+                        "Resi berhasil diproses: ${result.width} x ${result.height} px"
+                }
+            }
+        } ?: throw Exception("Tidak dapat membuka file PDF")
+
+    } catch (e: Exception) {
+        status.text = "Gagal memproses PDF: ${e.message}"
+    }
+}
+
+
+private fun processReceipt(source: Bitmap): Bitmap {
+
+    // 1. Crop area resi
+    val cropX = 0
+    val cropY = 35
+    val cropWidth = source.width
+    val cropHeight = minOf(450, source.height - cropY)
+
+    require(cropHeight > 0) {
+        "Ukuran PDF terlalu kecil untuk crop"
+    }
+
+    val cropped = Bitmap.createBitmap(
+        source,
+        cropX,
+        cropY,
+        cropWidth,
+        cropHeight
+    )
+
+    // 2. Trim area putih
+    var minX = cropped.width
+    var minY = cropped.height
+    var maxX = -1
+    var maxY = -1
+
+    for (y in 0 until cropped.height) {
+        for (x in 0 until cropped.width) {
+            val pixel = cropped.getPixel(x, y)
+
+            val r = android.graphics.Color.red(pixel)
+            val g = android.graphics.Color.green(pixel)
+            val b = android.graphics.Color.blue(pixel)
+
+            if (r < 250 || g < 250 || b < 250) {
+                minX = minOf(minX, x)
+                minY = minOf(minY, y)
+                maxX = maxOf(maxX, x)
+                maxY = maxOf(maxY, y)
+            }
         }
     }
+
+    require(maxX >= minX && maxY >= minY) {
+        "Isi resi tidak ditemukan"
+    }
+
+    val trimmed = Bitmap.createBitmap(
+        cropped,
+        minX,
+        minY,
+        maxX - minX + 1,
+        maxY - minY + 1
+    )
+
+    // 3. Rotasi -90 derajat
+    val rotated = rotateBitmap(trimmed, -90f)
+
+    // 4. Resize lebar menjadi 384 pixel
+    val newHeight = (
+        rotated.height * 384f / rotated.width
+    ).toInt().coerceAtLeast(1)
+
+    val resized = Bitmap.createScaledBitmap(
+        rotated,
+        384,
+        newHeight,
+        true
+    )
+
+    // 5. Grayscale dan threshold 65%
+    val binary = Bitmap.createBitmap(
+        384,
+        newHeight,
+        Bitmap.Config.ARGB_8888
+    )
+
+    for (y in 0 until newHeight) {
+        for (x in 0 until 384) {
+            val pixel = resized.getPixel(x, y)
+
+            val r = android.graphics.Color.red(pixel)
+            val g = android.graphics.Color.green(pixel)
+            val b = android.graphics.Color.blue(pixel)
+
+            val gray = (
+                0.299 * r +
+                0.587 * g +
+                0.114 * b
+            ).toInt()
+
+            val value = if (gray < 255 * 0.65) 0 else 255
+
+            binary.setPixel(
+                x,
+                y,
+                android.graphics.Color.rgb(value, value, value)
+            )
+        }
+    }
+
+    // 6. Rotasi 180 derajat
+    val finalRotation = rotateBitmap(binary, 180f)
+
+    // 7. Tambahkan border hitam 2 pixel kiri dan kanan
+    val result = Bitmap.createBitmap(
+        384,
+        finalRotation.height,
+        Bitmap.Config.ARGB_8888
+    )
+
+    val canvas = android.graphics.Canvas(result)
+
+    canvas.drawColor(android.graphics.Color.WHITE)
+
+    val paint = android.graphics.Paint()
+
+    canvas.drawBitmap(finalRotation, 0f, 0f, paint)
+
+    val borderPaint = android.graphics.Paint().apply {
+        color = android.graphics.Color.BLACK
+    }
+
+    canvas.drawRect(
+        0f, 0f, 2f, result.height.toFloat(), borderPaint
+    )
+
+    canvas.drawRect(
+        382f, 0f, 384f, result.height.toFloat(), borderPaint
+    )
+
+    return result
+}
+
+private fun rotateBitmap(
+    source: Bitmap,
+    degrees: Float
+): Bitmap {
+    val matrix = android.graphics.Matrix().apply {
+        postRotate(degrees)
+    }
+
+    return Bitmap.createBitmap(
+        source,
+        0,
+        0,
+        source.width,
+        source.height,
+        matrix,
+        true
+    )
+}
+
 }
