@@ -174,16 +174,20 @@ override fun onCreate(savedInstanceState: Bundle?) {
     connectionPanel.addView(status)
 
     // Tombol pencarian
-val searchButton = Button(this).apply {
+val searchButton = androidx.appcompat.widget.AppCompatButton(this).apply {
     isAllCaps = false
     background = rounded(blue, 14f)
-    // HAPUS: backgroundTintList = null  <-- Hapus baris ini
-
+    
+    // Hapus backgroundTintList
+    
     gravity = Gravity.CENTER
     textSize = 14f
     typeface = Typeface.DEFAULT_BOLD
+    
+    // Gunakan setTextColor secara eksplisit
     setTextColor(Color.WHITE)
-
+    
+    // Gunakan properti .text langsung atau setText()
     text = "SCAN DEVICE"
 
     setOnClickListener {
