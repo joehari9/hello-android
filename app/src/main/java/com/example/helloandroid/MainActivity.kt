@@ -51,92 +51,211 @@ class MainActivity : Activity() {
         "Generate by: JZ Receipt Printer"
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
 
-        val manager = getSystemService(BluetoothManager::class.java)
-        adapter = manager.adapter
+override fun onCreate(savedInstanceState: Bundle?) {
+    super.onCreate(savedInstanceState)
 
-        val layout = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            gravity = Gravity.CENTER
-            setPadding(30, 30, 30, 30)
-        }
+    val manager = getSystemService(BluetoothManager::class.java)
+    adapter = manager.adapter
 
-        val title = TextView(this).apply {
-            text = "JZ PRINTER TEST"
-            textSize = 25f
-            gravity = Gravity.CENTER
-        }
-
-        deviceInfo = TextView(this).apply {
-            text = "Printer: Belum ditemukan"
-            textSize = 17f
-            gravity = Gravity.CENTER
-        }
-
-        status = TextView(this).apply {
-            text = "Status: Belum terhubung"
-            textSize = 16f
-            gravity = Gravity.CENTER
-        }
-
-        val searchButton = Button(this).apply {
-            text = "Cari Printer"
-            setOnClickListener {
-                findPrinter()
-            }
-        }
-
-        connectButton = Button(this).apply {
-            text = "Connect"
-            setOnClickListener {
-                connectPrinter()
-            }
-        }
-
-        printButton = Button(this).apply {
-    text = "Cetak Resi"
-    isEnabled = false
-    setOnClickListener {
-        printReceipt()
+    // Tampilan utama
+    val layout = LinearLayout(this).apply {
+        orientation = LinearLayout.VERTICAL
+        setPadding(22, 24, 22, 24)
+        setBackgroundColor(Color.rgb(242, 245, 250))
     }
-        }
-val selectPdfButton = Button(this).apply {
-    text = "Pilih PDF Resi"
 
-    setOnClickListener {
-        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
-            addCategory(Intent.CATEGORY_OPENABLE)
-            type = "application/pdf"
-        }
-
-        startActivityForResult(intent, REQUEST_PDF)
+    // Header
+    val title = TextView(this).apply {
+        text = "JZ RECEIPT PRINTER"
+        textSize = 23f
+        setTextColor(Color.rgb(25, 48, 75))
+        typeface = Typeface.DEFAULT_BOLD
+        gravity = Gravity.CENTER
     }
-}
 
-pdfPreview = ImageView(this).apply {
-    adjustViewBounds = true
-    scaleType = ImageView.ScaleType.FIT_CENTER
-}
+    val subtitle = TextView(this).apply {
+        text = "PDF Thermal Printing • Bluetooth"
+        textSize = 13f
+        setTextColor(Color.DKGRAY)
+        gravity = Gravity.CENTER
+    }
 
-        layout.addView(title)
-        layout.addView(deviceInfo)
-        layout.addView(status)
-        layout.addView(searchButton)
-        layout.addView(connectButton)
-        layout.addView(printButton)
-        layout.addView(selectPdfButton)
+    layout.addView(title)
+    layout.addView(subtitle)
+
+    // Jarak
+    fun addSpace(height: Int) {
         layout.addView(
-    pdfPreview,
-    LinearLayout.LayoutParams(
-        LinearLayout.LayoutParams.MATCH_PARENT,
-        LinearLayout.LayoutParams.WRAP_CONTENT
-    )
-)
-
-        setContentView(layout)
+            TextView(this),
+            LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                height
+            )
+        )
     }
+
+    addSpace(24)
+
+    // Panel koneksi printer
+    val connectionPanel = LinearLayout(this).apply {
+        orientation = LinearLayout.VERTICAL
+        setPadding(18, 16, 18, 16)
+        setBackgroundColor(Color.WHITE)
+    }
+
+    val connectionTitle = TextView(this).apply {
+        text = "KONEKSI PRINTER"
+        textSize = 14f
+        setTextColor(Color.rgb(35, 75, 115))
+        typeface = Typeface.DEFAULT_BOLD
+    }
+
+    deviceInfo = TextView(this).apply {
+        text = "Printer: Belum ditemukan"
+        textSize = 15f
+        setTextColor(Color.DKGRAY)
+        setPadding(0, 12, 0, 6)
+    }
+
+    status = TextView(this).apply {
+        text = "Status: Belum terhubung"
+        textSize = 14f
+        setTextColor(Color.rgb(190, 100, 35))
+    }
+
+    connectionPanel.addView(connectionTitle)
+    connectionPanel.addView(deviceInfo)
+    connectionPanel.addView(status)
+
+    layout.addView(
+        connectionPanel,
+        LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        )
+    )
+
+    addSpace(12)
+
+    // Tombol cari printer
+    val searchButton = Button(this).apply {
+        text = "Cari Printer"
+        isAllCaps = false
+        setOnClickListener {
+            findPrinter()
+        }
+    }
+
+    // Tombol connect
+    connectButton = Button(this).apply {
+        text = "Hubungkan Printer"
+        isAllCaps = false
+        setOnClickListener {
+            connectPrinter()
+        }
+    }
+
+    layout.addView(searchButton)
+    layout.addView(connectButton)
+
+    addSpace(18)
+
+    // Judul preview
+    val previewTitle = TextView(this).apply {
+        text = "PREVIEW RESI"
+        textSize = 14f
+        setTextColor(Color.rgb(35, 75, 115))
+        typeface = Typeface.DEFAULT_BOLD
+    }
+
+    layout.addView(previewTitle)
+
+    addSpace(8)
+
+    // Area preview
+    val previewPanel = LinearLayout(this).apply {
+        orientation = LinearLayout.VERTICAL
+        gravity = Gravity.CENTER
+        setPadding(10, 10, 10, 10)
+        setBackgroundColor(Color.WHITE)
+    }
+
+    pdfPreview = ImageView(this).apply {
+        adjustViewBounds = true
+        scaleType = ImageView.ScaleType.FIT_CENTER
+        minimumHeight = 220
+    }
+
+    previewPanel.addView(
+        pdfPreview,
+        LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        )
+    )
+
+    layout.addView(
+        previewPanel,
+        LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        )
+    )
+
+    addSpace(12)
+
+    // Pilih PDF
+    val selectPdfButton = Button(this).apply {
+        text = "Pilih PDF Resi"
+        isAllCaps = false
+
+        setOnClickListener {
+            val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+                addCategory(Intent.CATEGORY_OPENABLE)
+                type = "application/pdf"
+            }
+
+            startActivityForResult(intent, REQUEST_PDF)
+        }
+    }
+
+    layout.addView(selectPdfButton)
+
+    // Cetak resi
+    printButton = Button(this).apply {
+        text = "Cetak Resi"
+        isAllCaps = false
+        isEnabled = false
+
+        setOnClickListener {
+            printReceipt()
+        }
+    }
+
+    layout.addView(printButton)
+
+    addSpace(12)
+
+    // Footer
+    val footer = TextView(this).apply {
+        text = "JZ Receipt Printer"
+        textSize = 12f
+        setTextColor(Color.GRAY)
+        gravity = Gravity.CENTER
+    }
+
+    layout.addView(footer)
+
+    // Scroll agar nyaman di layar kecil
+    val scrollView = ScrollView(this).apply {
+        fillViewport = true
+        addView(layout)
+    }
+
+    setContentView(scrollView)
+}
+
 
     private fun hasBluetoothPermission(): Boolean {
         if (Build.VERSION.SDK_INT < 31) return true
