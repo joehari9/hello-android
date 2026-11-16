@@ -384,11 +384,10 @@ private fun processReceipt(source: Bitmap): Bitmap {
         cropHeight
     )
 
-    // 2. Trim area putih
-    var minX = cropped.width
-    var minY = cropped.height
-    var maxX = -1
-    var maxY = -1
+
+    // 2. Trim area putih, abaikan garis bingkai tipis
+    val rowCounts = IntArray(cropped.height)
+    val colCounts = IntArray(cropped.width)
 
     for (y in 0 until cropped.height) {
         for (x in 0 until cropped.width) {
@@ -399,11 +398,29 @@ private fun processReceipt(source: Bitmap): Bitmap {
             val b = android.graphics.Color.blue(pixel)
 
             if (r < 250 || g < 250 || b < 250) {
-                minX = minOf(minX, x)
-                minY = minOf(minY, y)
-                maxX = maxOf(maxX, x)
-                maxY = maxOf(maxY, y)
+                rowCounts[y]++
+                colCounts[x]++
             }
+        }
+    }
+
+    var minY = cropped.height
+    var maxY = -1
+    var minX = cropped.width
+    var maxX = -1
+
+    // Abaikan baris yang hanya berisi garis bingkai
+    for (y in rowCounts.indices) {
+        if (rowCounts[y] > 2) {
+            minY = minOf(minY, y)
+            maxY = maxOf(maxY, y)
+        }
+    }
+
+    for (x in colCounts.indices) {
+        if (colCounts[x] > 2) {
+            minX = minOf(minX, x)
+            maxX = maxOf(maxX, x)
         }
     }
 
@@ -418,6 +435,7 @@ private fun processReceipt(source: Bitmap): Bitmap {
         maxX - minX + 1,
         maxY - minY + 1
     )
+
 
     // 3. Rotasi -90 derajat
     val rotated = rotateBitmap(trimmed, -90f)
