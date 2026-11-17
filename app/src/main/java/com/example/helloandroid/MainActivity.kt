@@ -540,22 +540,39 @@ setContentView(rootLayout)
 
   // onCreate end
 
-    private fun hasBluetoothPermission(): Boolean {
-        if (Build.VERSION.SDK_INT < 31) return true
-
-        return checkSelfPermission(
+private fun hasBluetoothPermission(): Boolean {
+    return if (Build.VERSION.SDK_INT >= 31) {
+        checkSelfPermission(
             Manifest.permission.BLUETOOTH_CONNECT
+        ) == PackageManager.PERMISSION_GRANTED &&
+        checkSelfPermission(
+            Manifest.permission.BLUETOOTH_SCAN
+        ) == PackageManager.PERMISSION_GRANTED
+    } else {
+        checkSelfPermission(
+            Manifest.permission.ACCESS_FINE_LOCATION
         ) == PackageManager.PERMISSION_GRANTED
     }
+}
 
-    private fun requestBluetoothPermission() {
-        if (Build.VERSION.SDK_INT >= 31 && !hasBluetoothPermission()) {
-            requestPermissions(
-                arrayOf(Manifest.permission.BLUETOOTH_CONNECT),
-                REQUEST_BT
-            )
-        }
+private fun requestBluetoothPermission() {
+    if (Build.VERSION.SDK_INT >= 31) {
+        requestPermissions(
+            arrayOf(
+                Manifest.permission.BLUETOOTH_CONNECT,
+                Manifest.permission.BLUETOOTH_SCAN
+            ),
+            REQUEST_BT
+        )
+    } else {
+        requestPermissions(
+            arrayOf(
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ),
+            REQUEST_BT
+        )
     }
+}
 
     override fun onRequestPermissionsResult(
         requestCode: Int,
