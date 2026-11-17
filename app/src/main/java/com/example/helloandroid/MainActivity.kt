@@ -435,7 +435,7 @@ space(18)
 
     // Tombol pilih PDF
 selectPdfButton = Button(this).apply {
-    text = "SELECT PDF"
+    text = "📄 SELECT PDF"
     isAllCaps = false
     textSize = 14f
     typeface = Typeface.DEFAULT_BOLD
