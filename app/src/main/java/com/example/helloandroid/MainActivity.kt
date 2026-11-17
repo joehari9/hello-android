@@ -38,15 +38,18 @@ class MainActivity : Activity() {
         "00001101-0000-1000-8000-00805F9B34FB"
     )
 
-    private var adapter: BluetoothAdapter? = null
-    private var printer: BluetoothDevice? = null
-    private var socket: BluetoothSocket? = null
-    private lateinit var pdfPreview: ImageView
-    private var processedBitmap: Bitmap? = null
-    private lateinit var status: TextView
-    private lateinit var deviceInfo: TextView
-    private lateinit var connectButton: Button
-    private lateinit var printButton: Button
+private var adapter: BluetoothAdapter? = null
+private var printer: BluetoothDevice? = null
+private var socket: BluetoothSocket? = null
+
+private lateinit var pdfPreview: ImageView
+private var processedBitmap: Bitmap? = null
+private lateinit var status: TextView
+private lateinit var deviceInfo: TextView
+
+private lateinit var connectButton: Button
+private lateinit var selectPdfButton: Button
+private lateinit var printButton: Button
 
     companion object {
         private const val REQUEST_BT = 100
