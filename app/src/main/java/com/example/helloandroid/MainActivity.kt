@@ -117,11 +117,12 @@ val header = LinearLayout(this).apply {
 
 // LOGO
 val logo = TextView(this).apply {
-    text = "▣"
-    textSize = 26f
+    text = "🖨"
+    textSize = 25f
     gravity = Gravity.CENTER
     setTextColor(Color.WHITE)
-    background = rounded(blue, 12f)
+    background = rounded(blue, 14f)
+    includeFontPadding = false
 }
 
 // JUDUL
