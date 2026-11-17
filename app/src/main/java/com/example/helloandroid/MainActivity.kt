@@ -702,6 +702,52 @@ private fun findPrinter() {
     }
 }
 
+
+private fun showDevicePicker() {
+
+    val devices = discoveredDevices.toList()
+
+    val deviceNames = devices.map { device ->
+        "${device.name ?: "Unknown"}\n${device.address}"
+    }.toTypedArray()
+
+    AlertDialog.Builder(this)
+        .setTitle("Pilih Printer Bluetooth")
+        .setItems(deviceNames) { _, which ->
+
+            val selectedDevice = devices[which]
+
+            printer = selectedDevice
+
+            deviceInfo.text =
+                "Printer dipilih: ${selectedDevice.name ?: "Unknown"}"
+
+            status.text = "Siap dihubungkan"
+
+        }
+        .setNegativeButton("BATAL", null)
+        .show()
+}
+
+
+private fun finishBluetoothScan() {
+
+    if (receiverRegistered) {
+        unregisterReceiver(discoveryReceiver)
+        receiverRegistered = false
+    }
+
+    status.text = "Pemindaian selesai"
+
+    if (discoveredDevices.isEmpty()) {
+        deviceInfo.text = "Tidak ada perangkat ditemukan"
+        status.text = "Coba scan kembali"
+        return
+    }
+
+    showDevicePicker()
+}
+
     private fun connectPrinter() {
         if (!hasBluetoothPermission()) {
             requestBluetoothPermission()
