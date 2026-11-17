@@ -217,49 +217,6 @@ val headerLine = View(this).apply {
         )
     }
 
-    // Header
-    val header = LinearLayout(this).apply {
-        orientation = LinearLayout.HORIZONTAL
-        gravity = Gravity.CENTER_VERTICAL
-    }
-
-    val logo = TextView(this).apply {
-        text = "▣"
-        textSize = 30f
-        gravity = Gravity.CENTER
-        setTextColor(Color.rgb(100, 185, 255))
-        background = rounded(cardColor, 18f)
-        setPadding(12, 8, 12, 8)
-    }
-
-    val headerText = LinearLayout(this).apply {
-        orientation = LinearLayout.VERTICAL
-        setPadding(12, 0, 0, 0)
-    }
-
-    val title = TextView(this).apply {
-        text = "JZ RECEIPT"
-        textSize = 23f
-        typeface = Typeface.DEFAULT_BOLD
-        setTextColor(white)
-    }
-
-    val subtitle = TextView(this).apply {
-        text = "THERMAL PRINT STUDIO"
-        textSize = 11f
-        setTextColor(muted)
-    }
-
-    headerText.addView(title)
-    headerText.addView(subtitle)
-
-    header.addView(logo)
-    header.addView(headerText)
-
-    layout.addView(header)
-
-    space(25)
-
     // Judul koneksi
     val connectionTitle = TextView(this).apply {
         text = "PRINTER CONNECTION"
