@@ -27,6 +27,8 @@ import android.graphics.Paint
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.view.View
+import android.content.res.ColorStateList
+import android.graphics.drawable.RippleDrawable
 
 class MainActivity : Activity() {
 
@@ -76,6 +78,12 @@ override fun onCreate(savedInstanceState: Bundle?) {
             cornerRadius = radius
         }
     }
+
+    // resize to dp
+    fun dp(value: Int): Int {
+    return (value * resources.displayMetrics.density).toInt()
+    }
+    
 
     // Layout utama
     val layout = LinearLayout(this).apply {
@@ -174,10 +182,6 @@ override fun onCreate(savedInstanceState: Bundle?) {
     connectionPanel.addView(status)
 
 // Tombol pencarian
-fun dp(value: Int): Int {
-    return (value * resources.displayMetrics.density).toInt()
-}
-
 val searchButton = TextView(this).apply {
     text = "SCAN DEVICE"
     textSize = 14f
