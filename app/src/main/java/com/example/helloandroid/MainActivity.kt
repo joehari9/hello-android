@@ -83,7 +83,19 @@ override fun onCreate(savedInstanceState: Bundle?) {
     fun dp(value: Int): Int {
     return (value * resources.displayMetrics.density).toInt()
     }
-    
+
+    // efek ronded
+    fun rippleRounded(color: Int, radius: Float): RippleDrawable {
+    val rippleColor = ColorStateList.valueOf(
+        Color.argb(70, 255, 255, 255)
+    )
+
+    return RippleDrawable(
+        rippleColor,
+        rounded(color, radius),
+        rounded(Color.WHITE, radius)
+    )
+    }
 
     // Layout utama
     val layout = LinearLayout(this).apply {
