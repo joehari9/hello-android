@@ -876,6 +876,10 @@ private fun renderPdf(uri: Uri) {
 
                     // Tampilkan hasil pengolahan
                     pdfPreview.setImageBitmap(result)
+                    
+                    // Sembunyikan placeholder
+                    previewPlaceholder.visibility = View.GONE
+                    pdfPreview.visibility = View.VISIBLE
 
                     status.text =
                         "Resi berhasil diproses: ${result.width} x ${result.height} px"
