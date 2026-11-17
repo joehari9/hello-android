@@ -220,17 +220,17 @@ val searchButton = TextView(this).apply {
         }
     }
 
-    connectionPanel.addView(
-        searchButton,
-        LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.MATCH_PARENT,
-            60
-        )
+connectionPanel.addView(
+    searchButton,
+    LinearLayout.LayoutParams(
+        LinearLayout.LayoutParams.MATCH_PARENT,
+        dp(56)
     )
+)
 
     val connectParams = LinearLayout.LayoutParams(
         LinearLayout.LayoutParams.MATCH_PARENT,
-        60
+        56
     ).apply {
         topMargin = 8
     }
