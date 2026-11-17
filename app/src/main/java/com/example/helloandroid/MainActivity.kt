@@ -471,6 +471,7 @@ rootLayout.addView(
 
 // TAMPILKAN
 setContentView(rootLayout)
+}
 
   // onCreate end
 
