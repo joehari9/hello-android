@@ -785,50 +785,6 @@ private fun finishBluetoothScan() {
         }.start()
     }
 
-    private fun testPrint() {
-        val activeSocket = socket
-
-        if (activeSocket == null || !activeSocket.isConnected) {
-            status.text = "Printer belum terhubung"
-            return
-        }
-
-        status.text = "Mengirim data..."
-
-        Thread {
-            try {
-                val output = activeSocket.outputStream
-
-                output.write(
-                    byteArrayOf(
-                        0x1B.toByte(), 0x40.toByte(),
-                        0x1B.toByte(), 0x61.toByte(), 0x01.toByte()
-                    )
-                )
-
-                output.write(
-                    "HELLO BLUETOOTH\nJZ-MP250\n\n".toByteArray(Charsets.US_ASCII)
-                )
-
-                output.write(
-                    byteArrayOf(
-                        0x1B.toByte(), 0x64.toByte(), 0x04.toByte()
-                    )
-                )
-
-                output.flush()
-
-                runOnUiThread {
-                    status.text = "Test print berhasil dikirim!"
-                }
-
-            } catch (e: Exception) {
-                runOnUiThread {
-                    status.text = "Gagal mencetak: ${e.message}"
-                }
-            }
-        }.start()
-    }
 
 private fun printReceipt() {
 
