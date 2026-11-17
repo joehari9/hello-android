@@ -37,8 +37,6 @@ import android.content.IntentFilter
 
 class MainActivity : Activity() {
 
-    private val printerName = "JZ-MP250"
-
     private val sppUUID = UUID.fromString(
         "00001101-0000-1000-8000-00805F9B34FB"
     )
