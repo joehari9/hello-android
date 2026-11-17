@@ -100,6 +100,105 @@ override fun onCreate(savedInstanceState: Bundle?) {
     )
     }
 
+    
+// ROOT LAYOUT
+val rootLayout = LinearLayout(this).apply {
+    orientation = LinearLayout.VERTICAL
+    setBackgroundColor(navy)
+}
+
+// HEADER NAVBAR
+val header = LinearLayout(this).apply {
+    orientation = LinearLayout.HORIZONTAL
+    gravity = Gravity.CENTER_VERTICAL
+    setPadding(dp(18), dp(10), dp(18), dp(10))
+    setBackgroundColor(navy)
+}
+
+// LOGO
+val logo = TextView(this).apply {
+    text = "▣"
+    textSize = 26f
+    gravity = Gravity.CENTER
+    setTextColor(Color.WHITE)
+    background = rounded(blue, 12f)
+}
+
+// JUDUL
+val headerTitle = LinearLayout(this).apply {
+    orientation = LinearLayout.VERTICAL
+    gravity = Gravity.CENTER_VERTICAL
+    setPadding(dp(12), 0, 0, 0)
+}
+
+val appName = TextView(this).apply {
+    text = "JZ RECEIPT"
+    textSize = 17f
+    typeface = Typeface.DEFAULT_BOLD
+    setTextColor(Color.WHITE)
+}
+
+val appSubtitle = TextView(this).apply {
+    text = "THERMAL PRINT STUDIO"
+    textSize = 9f
+    typeface = Typeface.DEFAULT_BOLD
+    setTextColor(muted)
+}
+
+headerTitle.addView(appName)
+headerTitle.addView(appSubtitle)
+
+// TOMBOL HEADER
+val settingsButton = TextView(this).apply {
+    text = "⚙"
+    textSize = 23f
+    gravity = Gravity.CENTER
+    setTextColor(Color.WHITE)
+    background = rippleRounded(cardColor, 12f)
+    isClickable = true
+    isFocusable = true
+}
+
+val menuButton = TextView(this).apply {
+    text = "☰"
+    textSize = 23f
+    gravity = Gravity.CENTER
+    setTextColor(Color.WHITE)
+    background = rippleRounded(cardColor, 12f)
+    isClickable = true
+    isFocusable = true
+}
+
+// SUSUN HEADER
+header.addView(
+    logo,
+    LinearLayout.LayoutParams(dp(44), dp(44))
+)
+
+header.addView(
+    headerTitle,
+    LinearLayout.LayoutParams(0, dp(44), 1f)
+)
+
+header.addView(
+    settingsButton,
+    LinearLayout.LayoutParams(dp(42), dp(42))
+)
+
+val menuParams = LinearLayout.LayoutParams(
+    dp(42), dp(42)
+).apply {
+    marginStart = dp(8)
+}
+
+header.addView(menuButton, menuParams)
+
+// GARIS PEMISAH
+val headerLine = View(this).apply {
+    setBackgroundColor(Color.rgb(64, 83, 106))
+}
+
+
     // Layout utama
     val layout = LinearLayout(this).apply {
         orientation = LinearLayout.VERTICAL
