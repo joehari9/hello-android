@@ -404,7 +404,7 @@ selectPdfButton = Button(this).apply {
 
     // Tombol cetak
     printButton = Button(this).apply {
-    text = "PRINT"
+    text = " &#x1F5A8; PRINT"
     isAllCaps = false
     textSize = 14f
     typeface = Typeface.DEFAULT_BOLD
