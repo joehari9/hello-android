@@ -64,6 +64,55 @@ private lateinit var printButton: Button
         "Generate by: JZ Receipt Printer"
     }
 
+// Daftar perangkat yang ditemukan saat scan
+private val discoveredDevices = mutableListOf<BluetoothDevice>()
+
+// Status penerima broadcast
+private var receiverRegistered = false
+
+// Penerima hasil Bluetooth Discovery
+private val discoveryReceiver = object : BroadcastReceiver() {
+
+    override fun onReceive(
+        context: Context,
+        intent: Intent
+    ) {
+        when (intent.action) {
+
+            BluetoothDevice.ACTION_FOUND -> {
+
+                val device: BluetoothDevice? =
+                    if (Build.VERSION.SDK_INT >= 33) {
+                        intent.getParcelableExtra(
+                            BluetoothDevice.EXTRA_DEVICE,
+                            BluetoothDevice::class.java
+                        )
+                    } else {
+                        @Suppress("DEPRECATION")
+                        intent.getParcelableExtra(
+                            BluetoothDevice.EXTRA_DEVICE
+                        )
+                    }
+
+                if (device != null) {
+                    if (discoveredDevices.none {
+                        it.address == device.address
+                    }) {
+                        discoveredDevices.add(device)
+
+                        deviceInfo.text =
+                            "Perangkat ditemukan: ${discoveredDevices.size}"
+                    }
+                }
+            }
+
+            BluetoothAdapter.ACTION_DISCOVERY_FINISHED -> {
+                status.text = "Pemindaian selesai"
+            }
+        }
+    }
+}
+
   // onCreate start
 
 override fun onCreate(savedInstanceState: Bundle?) {
