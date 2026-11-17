@@ -644,43 +644,63 @@ private fun requestBluetoothPermission() {
         }
     }
 
-    private fun findPrinter() {
-        if (!hasBluetoothPermission()) {
-            requestBluetoothPermission()
+
+private fun findPrinter() {
+    if (!hasBluetoothPermission()) {
+        requestBluetoothPermission()
+        return
+    }
+
+    try {
+        val bt = adapter
+
+        if (bt == null || !bt.isEnabled) {
+            status.text = "Bluetooth belum aktif"
             return
         }
 
-        try {
-            val bt = adapter
+        discoveredDevices.clear()
 
-            if (bt == null || !bt.isEnabled) {
-                status.text = "Bluetooth belum aktif"
-                return
-            }
+        status.text = "Memindai perangkat Bluetooth..."
+        deviceInfo.text = "Sedang mencari perangkat di sekitar"
 
-            val devices = bt.bondedDevices
+        if (bt.isDiscovering) {
+            bt.cancelDiscovery()
+        }
 
-            printer = devices.firstOrNull {
-                it.name.equals(printerName, ignoreCase = true)
-            }
+        val filter = IntentFilter().apply {
+            addAction(BluetoothDevice.ACTION_FOUND)
+            addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED)
+        }
 
-            if (printer != null) {
-                deviceInfo.text = "Printer ditemukan: ${printer?.name}"
-                status.text = "Siap dihubungkan"
-            } else {
-                deviceInfo.text = "Printer tidak ditemukan"
+        if (Build.VERSION.SDK_INT >= 33) {
+            registerReceiver(
+                discoveryReceiver,
+                filter,
+                Context.RECEIVER_EXPORTED
+            )
+        } else {
+            registerReceiver(discoveryReceiver, filter)
+        }
 
-                val names = devices.joinToString("\n") {
-                    it.name ?: "Unknown"
-                }
+        receiverRegistered = true
 
-                status.text = "Perangkat tersimpan:\n$names"
-            }
+        val started = bt.startDiscovery()
 
-        } catch (e: Exception) {
-            status.text = "Error: ${e.message}"
+        if (!started) {
+            finishBluetoothScan()
+            status.text = "Gagal memulai pemindaian"
+        }
+
+    } catch (e: Exception) {
+        status.text = "Error scan: ${e.message}"
+
+        if (receiverRegistered) {
+            unregisterReceiver(discoveryReceiver)
+            receiverRegistered = false
         }
     }
+}
 
     private fun connectPrinter() {
         if (!hasBluetoothPermission()) {
