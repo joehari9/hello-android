@@ -30,6 +30,10 @@ import android.view.View
 import android.content.res.ColorStateList
 import android.graphics.drawable.RippleDrawable
 import android.widget.FrameLayout
+import android.app.AlertDialog
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.IntentFilter
 
 class MainActivity : Activity() {
 
