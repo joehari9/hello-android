@@ -485,15 +485,35 @@ selectPdfButton = Button(this).apply {
 
     layout.addView(footer)
 
-    // Scroll layar
+    // SCROLL KONTEN
     val scrollView = ScrollView(this).apply {
-        setFillViewport(true)
-        setBackgroundColor(navy)
-        addView(layout)
-    }
-
-    setContentView(scrollView)
+    setFillViewport(true)
+    setBackgroundColor(navy)
+    addView(layout)
 }
+
+// GARIS PEMISAH HEADER
+headerLine.layoutParams = LinearLayout.LayoutParams(
+    LinearLayout.LayoutParams.MATCH_PARENT,
+    dp(1)
+)
+
+// SUSUN ROOT LAYOUT
+rootLayout.addView(header)
+
+rootLayout.addView(headerLine)
+
+rootLayout.addView(
+    scrollView,
+    LinearLayout.LayoutParams(
+        LinearLayout.LayoutParams.MATCH_PARENT,
+        0,
+        1f
+    )
+)
+
+// TAMPILKAN
+setContentView(rootLayout)
 
   // onCreate end
 
