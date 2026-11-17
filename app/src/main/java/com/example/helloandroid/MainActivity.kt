@@ -29,6 +29,7 @@ import android.graphics.drawable.GradientDrawable
 import android.view.View
 import android.content.res.ColorStateList
 import android.graphics.drawable.RippleDrawable
+import android.widget.FrameLayout
 
 class MainActivity : Activity() {
 
@@ -325,49 +326,111 @@ connectionPanel.addView(
 
     space(24)
 
-    // Judul preview
-    val previewTitle = TextView(this).apply {
-        text = "RECEIPT PREVIEW"
-        textSize = 14f
-        typeface = Typeface.DEFAULT_BOLD
-        setTextColor(white)
-    }
+// Judul preview
+val previewTitle = TextView(this).apply {
+    text = "RECEIPT PREVIEW"
+    textSize = 14f
+    typeface = Typeface.DEFAULT_BOLD
+    setTextColor(white)
+}
 
-    layout.addView(previewTitle)
-    space(10)
+layout.addView(previewTitle)
+space(10)
 
-    // Panel kertas putih
-    val previewPanel = LinearLayout(this).apply {
-        orientation = LinearLayout.VERTICAL
+// Panel preview
+val previewPanel = FrameLayout(this).apply {
+    background = rounded(white, 16f)
+    minimumHeight = dp(280)
+    setPadding(dp(12), dp(12), dp(12), dp(12))
+}
+
+// Placeholder awal
+val previewPlaceholder = LinearLayout(this).apply {
+    orientation = LinearLayout.VERTICAL
+    gravity = Gravity.CENTER
+}
+
+// Ikon kertas
+val paperIcon = TextView(this).apply {
+    text = "📄"
+    textSize = 42f
+    gravity = Gravity.CENTER
+}
+
+previewPlaceholder.addView(paperIcon)
+
+fun placeholderText(value: String, size: Float, color: Int): TextView {
+    return TextView(this).apply {
+        text = value
+        textSize = size
+        setTextColor(color)
         gravity = Gravity.CENTER
-        setPadding(12, 12, 12, 12)
-        background = rounded(white, 16f)
-        minimumHeight = 280
+    }
+}
+
+previewPlaceholder.addView(
+    placeholderText("Receipt Preview", 17f, Color.rgb(55, 65, 81))
+)
+
+previewPlaceholder.addView(
+    placeholderText(
+        "Your processed receipt appears here",
+        12f,
+        Color.rgb(145, 155, 165)
+    )
+)
+
+// Garis-garis ilustrasi kertas
+for (i in 1..4) {
+    val line = View(this).apply {
+        background = rounded(Color.rgb(225, 230, 235), 4f)
     }
 
-    pdfPreview = ImageView(this).apply {
-        adjustViewBounds = true
-        scaleType = ImageView.ScaleType.FIT_CENTER
-        minimumHeight = 250
-    }
-
-    previewPanel.addView(
-        pdfPreview,
+    previewPlaceholder.addView(
+        line,
         LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.MATCH_PARENT,
-            LinearLayout.LayoutParams.WRAP_CONTENT
-        )
+            dp(if (i == 4) 90 else 150),
+            dp(6)
+        ).apply {
+            topMargin = dp(10)
+        }
     )
+}
 
-    layout.addView(
-        previewPanel,
-        LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.MATCH_PARENT,
-            LinearLayout.LayoutParams.WRAP_CONTENT
-        )
+// Tampilkan placeholder
+previewPanel.addView(
+    previewPlaceholder,
+    FrameLayout.LayoutParams(
+        FrameLayout.LayoutParams.MATCH_PARENT,
+        FrameLayout.LayoutParams.MATCH_PARENT
     )
+)
 
-    space(18)
+// Gambar hasil PDF
+pdfPreview = ImageView(this).apply {
+    adjustViewBounds = true
+    scaleType = ImageView.ScaleType.FIT_CENTER
+    visibility = View.GONE
+}
+
+previewPanel.addView(
+    pdfPreview,
+    FrameLayout.LayoutParams(
+        FrameLayout.LayoutParams.MATCH_PARENT,
+        FrameLayout.LayoutParams.WRAP_CONTENT,
+        Gravity.CENTER
+    )
+)
+
+layout.addView(
+    previewPanel,
+    LinearLayout.LayoutParams(
+        LinearLayout.LayoutParams.MATCH_PARENT,
+        LinearLayout.LayoutParams.WRAP_CONTENT
+    )
+)
+
+space(18)
 
     // Tombol pilih PDF
 selectPdfButton = Button(this).apply {
