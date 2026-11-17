@@ -346,7 +346,7 @@ val previewPanel = FrameLayout(this).apply {
 }
 
 // Placeholder awal
-val previewPlaceholder = LinearLayout(this).apply {
+    previewPlaceholder = LinearLayout(this).apply {
     orientation = LinearLayout.VERTICAL
     gravity = Gravity.CENTER
 }
