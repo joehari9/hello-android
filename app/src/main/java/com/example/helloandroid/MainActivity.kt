@@ -44,6 +44,7 @@ private var printer: BluetoothDevice? = null
 private var socket: BluetoothSocket? = null
 
 private lateinit var pdfPreview: ImageView
+private lateinit var previewPlaceholder: LinearLayout
 private var processedBitmap: Bitmap? = null
 private lateinit var status: TextView
 private lateinit var deviceInfo: TextView
