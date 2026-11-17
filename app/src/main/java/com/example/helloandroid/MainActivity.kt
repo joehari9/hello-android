@@ -310,7 +310,7 @@ val headerLine = View(this).apply {
 
 // Tombol pencarian
 val searchButton = TextView(this).apply {
-    text = "SCAN DEVICE"
+    text = "\u2315  SCAN DEVICE"
     textSize = 14f
     typeface = Typeface.DEFAULT_BOLD
     gravity = Gravity.CENTER
@@ -335,7 +335,7 @@ val searchButton = TextView(this).apply {
 
 // Tombol koneksi
 connectButton = Button(this).apply {
-    text = "CONNECT PRINTER"
+    text = "\uD83D\uDD17  CONNECT PRINTER"
     isAllCaps = false
     textSize = 14f
     typeface = Typeface.DEFAULT_BOLD
