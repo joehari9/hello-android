@@ -310,18 +310,19 @@ connectionPanel.addView(
     space(18)
 
     // Tombol pilih PDF
-    val selectPdfButton = Button(this).apply {
-        text = "SELECT RECEIPT PDF"
-        isAllCaps = false
-        setTextColor(white)
-        background = rounded(blue, 16f)
-        
-        gravity = Gravity.CENTER
-        textSize = 14f
-        typeface = Typeface.DEFAULT_BOLD
-        setTextColor(Color.WHITE)
-        backgroundTintList = null
-        
+selectPdfButton = Button(this).apply {
+    text = "SELECT PDF"
+    isAllCaps = false
+    textSize = 14f
+    typeface = Typeface.DEFAULT_BOLD
+    gravity = Gravity.CENTER
+
+    setTextColor(Color.WHITE)
+    background = rippleRounded(blue, 14f)
+    backgroundTintList = null
+
+    minHeight = dp(56)
+    setPadding(dp(12), dp(4), dp(12), dp(4))
 
         setOnClickListener {
             val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
@@ -337,24 +338,24 @@ connectionPanel.addView(
         selectPdfButton,
         LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.MATCH_PARENT,
-            56
+            dp(56)
         )
     )
 
     // Tombol cetak
     printButton = Button(this).apply {
-        text = "PRINT RECEIPT"
-        isAllCaps = false
-        isEnabled = false
-        setTextColor(white)
-        background = rounded(green, 16f)
-        
-        gravity = Gravity.CENTER
-        textSize = 14f
-        typeface = Typeface.DEFAULT_BOLD
-        setTextColor(Color.WHITE)
-        backgroundTintList = null
-        
+    text = "PRINT"
+    isAllCaps = false
+    textSize = 14f
+    typeface = Typeface.DEFAULT_BOLD
+    gravity = Gravity.CENTER
+
+    setTextColor(Color.WHITE)
+    background = rippleRounded(green, 14f)
+    backgroundTintList = null
+
+    minHeight = dp(56)
+    setPadding(dp(12), dp(4), dp(12), dp(4))        
 
         setOnClickListener {
             printReceipt()
@@ -363,9 +364,9 @@ connectionPanel.addView(
 
     val printParams = LinearLayout.LayoutParams(
         LinearLayout.LayoutParams.MATCH_PARENT,
-        58
+        dp(58)
     ).apply {
-        topMargin = 10
+        topMargin = dp(10)
     }
 
     layout.addView(printButton, printParams)
