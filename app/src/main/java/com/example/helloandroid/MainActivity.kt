@@ -202,23 +202,25 @@ val searchButton = TextView(this).apply {
 
 
 
-    // Tombol koneksi
-    connectButton = Button(this).apply {
-        text = "CONNECT PRINTER"
-        isAllCaps = false
-        setTextColor(white)
-        background = rounded(Color.rgb(48, 79, 110), 14f)
-        
-        gravity = Gravity.CENTER
-        textSize = 14f
-        typeface = Typeface.DEFAULT_BOLD
-        setTextColor(Color.WHITE)
-        backgroundTintList = null
-        
-        setOnClickListener {
-            connectPrinter()
-        }
+// Tombol koneksi
+connectButton = Button(this).apply {
+    text = "CONNECT PRINTER"
+    isAllCaps = false
+    textSize = 14f
+    typeface = Typeface.DEFAULT_BOLD
+    gravity = Gravity.CENTER
+
+    setTextColor(Color.WHITE)
+    background = rounded(Color.rgb(48, 79, 110), 14f)
+    backgroundTintList = null
+
+    minHeight = dp(56)
+    setPadding(dp(12), dp(4), dp(12), dp(4))
+
+    setOnClickListener {
+        connectPrinter()
     }
+}
 
 connectionPanel.addView(
     searchButton,
@@ -230,9 +232,9 @@ connectionPanel.addView(
 
     val connectParams = LinearLayout.LayoutParams(
         LinearLayout.LayoutParams.MATCH_PARENT,
-        56
+        dp(56)
     ).apply {
-        topMargin = 8
+        topMargin = dp(8)
     }
 
     connectionPanel.addView(connectButton, connectParams)
