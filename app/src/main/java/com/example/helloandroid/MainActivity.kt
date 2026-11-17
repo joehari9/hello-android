@@ -151,7 +151,7 @@ headerTitle.addView(appSubtitle)
 
 // TOMBOL HEADER
 val settingsButton = TextView(this).apply {
-    text = "⚙"
+    text = "⚙︎"
     textSize = 23f
     gravity = Gravity.CENTER
     setTextColor(Color.WHITE)
