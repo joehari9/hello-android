@@ -201,7 +201,7 @@ val searchButton = TextView(this).apply {
     gravity = Gravity.CENTER
     setTextColor(Color.WHITE)
 
-    background = rounded(blue, 14f)
+    background = rippleRounded(blue, 14f)
 
     isClickable = true
     isFocusable = true
@@ -227,7 +227,7 @@ connectButton = Button(this).apply {
     gravity = Gravity.CENTER
 
     setTextColor(Color.WHITE)
-    background = rounded(Color.rgb(48, 79, 110), 14f)
+    background = rippleRounded(Color.rgb(48, 79, 110), 14f)
     backgroundTintList = null
 
     minHeight = dp(56)
