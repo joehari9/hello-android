@@ -107,7 +107,7 @@ private val discoveryReceiver = object : BroadcastReceiver() {
             }
 
             BluetoothAdapter.ACTION_DISCOVERY_FINISHED -> {
-                status.text = "Pemindaian selesai"
+                finishBluetoothScan()
             }
         }
     }
