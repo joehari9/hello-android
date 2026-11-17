@@ -173,7 +173,11 @@ override fun onCreate(savedInstanceState: Bundle?) {
     connectionPanel.addView(deviceInfo)
     connectionPanel.addView(status)
 
-    // Tombol pencarian
+// Tombol pencarian
+fun dp(value: Int): Int {
+    return (value * resources.displayMetrics.density).toInt()
+}
+
 val searchButton = TextView(this).apply {
     text = "SCAN DEVICE"
     textSize = 14f
@@ -185,12 +189,16 @@ val searchButton = TextView(this).apply {
 
     isClickable = true
     isFocusable = true
-    setPadding(12, 12, 12, 12)
+
+    setPadding(dp(12), dp(4), dp(12), dp(4))
+    minHeight = dp(56)
+    includeFontPadding = false
 
     setOnClickListener {
         findPrinter()
     }
 }
+
 
 
 
