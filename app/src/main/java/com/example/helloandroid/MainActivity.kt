@@ -309,6 +309,51 @@ private fun requestUsbPermission(device: UsbDevice) {
     manager.requestPermission(device, pendingIntent)
 }
 
+// MEMBUKA KONEKSI USB PRINTER
+private fun connectUsbPrinter() {
+
+    val manager = usbManager ?: return
+    val device = usbDevice ?: return
+    val intf = usbInterface ?: return
+    val endpoint = usbEndpointOut ?: return
+
+    if (!manager.hasPermission(device)) {
+        status.text = "Izin USB belum diberikan"
+        requestUsbPermission(device)
+        return
+    }
+
+    try {
+        // Buka perangkat USB
+        usbConnection = manager.openDevice(device)
+
+        if (usbConnection == null) {
+            status.text = "Gagal membuka printer USB"
+            return
+        }
+
+        // Ambil alih interface printer
+        val claimed = usbConnection!!.claimInterface(intf, true)
+
+        if (!claimed) {
+            usbConnection!!.close()
+            usbConnection = null
+            status.text = "Gagal mengambil interface USB"
+            return
+        }
+
+        usbPermissionGranted = true
+
+        deviceInfo.text = "USB: ${device.productName ?: "Printer USB"}"
+        status.text = "Printer USB terhubung"
+
+    } catch (e: Exception) {
+        usbConnection?.close()
+        usbConnection = null
+        status.text = "Koneksi USB gagal: ${e.message}"
+    }
+}
+
   // onCreate start
 
 override fun onCreate(savedInstanceState: Bundle?) {
