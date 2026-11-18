@@ -136,6 +136,57 @@ private val discoveryReceiver = object : BroadcastReceiver() {
     }
 }
 
+
+// PENERIMA IZIN USB
+private val usbPermissionReceiver = object : BroadcastReceiver() {
+
+    override fun onReceive(
+        context: Context,
+        intent: Intent
+    ) {
+        if (intent.action == ACTION_USB_PERMISSION) {
+
+            val device: UsbDevice? =
+                if (Build.VERSION.SDK_INT >= 33) {
+                    intent.getParcelableExtra(
+                        UsbManager.EXTRA_DEVICE,
+                        UsbDevice::class.java
+                    )
+                } else {
+                    @Suppress("DEPRECATION")
+                    intent.getParcelableExtra(
+                        UsbManager.EXTRA_DEVICE
+                    )
+                }
+
+            val granted = intent.getBooleanExtra(
+                UsbManager.EXTRA_PERMISSION_GRANTED,
+                false
+            )
+
+            if (device != null && granted) {
+                usbDevice = device
+                usbPermissionGranted = true
+
+                runOnUiThread {
+                    deviceInfo.text =
+                        "USB: ${device.productName ?: "Printer USB"}"
+
+                    status.text = "Izin USB diberikan"
+                }
+
+            } else {
+                usbPermissionGranted = false
+
+                runOnUiThread {
+                    status.text = "Izin akses USB ditolak"
+                }
+            }
+        }
+    }
+}
+
+
   // onCreate start
 
 override fun onCreate(savedInstanceState: Bundle?) {
