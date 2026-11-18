@@ -277,6 +277,24 @@ private fun scanUsbDevices() {
 override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
 
+    // DAFTARKAN USB PERMISSION RECEIVER
+val usbPermissionFilter = IntentFilter(ACTION_USB_PERMISSION)
+
+if (Build.VERSION.SDK_INT >= 33) {
+    registerReceiver(
+        usbPermissionReceiver,
+        usbPermissionFilter,
+        Context.RECEIVER_NOT_EXPORTED
+    )
+} else {
+    registerReceiver(
+        usbPermissionReceiver,
+        usbPermissionFilter
+    )
+}
+
+usbPermissionReceiverRegistered = true
+
     val manager = getSystemService(BluetoothManager::class.java)
     adapter = manager.adapter
 
