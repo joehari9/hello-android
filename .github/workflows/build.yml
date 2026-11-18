@@ -12,6 +12,10 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v4
 
+      - name: Install app icons
+        run: |
+          unzip -o JZ_Receipt_Printer_Icon_Resources.zip -d app/src/main
+
       - name: Setup JDK
         uses: actions/setup-java@v4
         with:
