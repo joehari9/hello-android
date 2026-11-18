@@ -55,6 +55,18 @@ private var adapter: BluetoothAdapter? = null
 private var printer: BluetoothDevice? = null
 private var socket: BluetoothSocket? = null
 
+
+// USB PRINTER
+private var usbManager: UsbManager? = null
+private var usbDevice: UsbDevice? = null
+private var usbConnection: UsbDeviceConnection? = null
+private var usbInterface: UsbInterface? = null
+private var usbEndpointOut: UsbEndpoint? = null
+private var usbEndpointIn: UsbEndpoint? = null
+
+private var usbPermissionGranted = false
+    
+
 private lateinit var pdfPreview: ImageView
 private lateinit var previewPlaceholder: LinearLayout
 private var processedBitmap: Bitmap? = null
