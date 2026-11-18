@@ -271,6 +271,41 @@ private fun scanUsbDevices() {
     }
 }
 
+// MEMINTA IZIN AKSES USB
+private fun requestUsbPermission(device: UsbDevice) {
+
+    val manager = usbManager ?: return
+
+    // Periksa apakah izin sudah pernah diberikan
+    if (manager.hasPermission(device)) {
+        usbDevice = device
+        usbPermissionGranted = true
+        status.text = "Izin USB sudah diberikan"
+        return
+    }
+
+    val permissionIntent = Intent(ACTION_USB_PERMISSION).apply {
+        setPackage(packageName)
+    }
+
+    val flags = PendingIntent.FLAG_UPDATE_CURRENT or
+        (if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            PendingIntent.FLAG_MUTABLE
+        } else {
+            0
+        })
+
+    val pendingIntent = PendingIntent.getBroadcast(
+        this,
+        REQUEST_USB,
+        permissionIntent,
+        flags
+    )
+
+    status.text = "Menunggu izin akses USB..."
+
+    manager.requestPermission(device, pendingIntent)
+}
 
   // onCreate start
 
