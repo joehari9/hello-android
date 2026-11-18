@@ -255,7 +255,7 @@ val popupMenu = PopupWindow(this).apply {
 
     contentView = menuLayout
     width = dp(196)
-    height = LinearLayout.LayoutParams.WRAP_CONTENT
+    height = dp(208)
     isFocusable = true
     elevation = dp(8).toFloat()
     setBackgroundDrawable(
