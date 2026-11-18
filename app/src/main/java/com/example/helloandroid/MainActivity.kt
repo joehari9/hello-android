@@ -469,6 +469,25 @@ if (Build.VERSION.SDK_INT >= 33) {
     )
 }
 
+// DAFTARKAN USB DEVICE RECEIVER
+val usbDeviceFilter = IntentFilter().apply {
+    addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED)
+    addAction(UsbManager.ACTION_USB_DEVICE_DETACHED)
+}
+
+if (Build.VERSION.SDK_INT >= 33) {
+    registerReceiver(
+        usbDeviceReceiver,
+        usbDeviceFilter,
+        Context.RECEIVER_NOT_EXPORTED
+    )
+} else {
+    registerReceiver(
+        usbDeviceReceiver,
+        usbDeviceFilter
+    )
+}
+
 usbPermissionReceiverRegistered = true
 
     val manager = getSystemService(BluetoothManager::class.java)
