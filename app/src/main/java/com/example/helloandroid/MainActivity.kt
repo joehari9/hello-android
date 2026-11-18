@@ -168,6 +168,7 @@ private val usbPermissionReceiver = object : BroadcastReceiver() {
             if (device != null && granted) {
                 usbDevice = device
                 usbPermissionGranted = true
+                connectUsbPrinter()
 
                 runOnUiThread {
                     deviceInfo.text =
