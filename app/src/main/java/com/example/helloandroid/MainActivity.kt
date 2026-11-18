@@ -36,6 +36,15 @@ import android.content.Context
 import android.content.IntentFilter
 import android.widget.PopupWindow
 
+import android.app.PendingIntent
+import android.hardware.usb.UsbConstants
+import android.hardware.usb.UsbDevice
+import android.hardware.usb.UsbDeviceConnection
+import android.hardware.usb.UsbEndpoint
+import android.hardware.usb.UsbInterface
+import android.hardware.usb.UsbManager
+
+
 class MainActivity : Activity() {
 
     private val sppUUID = UUID.fromString(
