@@ -355,6 +355,54 @@ private fun connectUsbPrinter() {
     }
 }
 
+// KIRIM DATA KE PRINTER USB
+private fun sendUsbData(data: ByteArray): Boolean {
+
+    val connection = usbConnection ?: run {
+        status.text = "Printer USB belum terhubung"
+        return false
+    }
+
+    val endpoint = usbEndpointOut ?: run {
+        status.text = "USB OUT endpoint tidak ditemukan"
+        return false
+    }
+
+    return try {
+        var offset = 0
+
+        while (offset < data.size) {
+
+            val length = minOf(4096, data.size - offset)
+
+            val chunk = data.copyOfRange(
+                offset,
+                offset + length
+            )
+
+            val sent = connection.bulkTransfer(
+                endpoint,
+                chunk,
+                chunk.size,
+                5000
+            )
+
+            if (sent <= 0) {
+                status.text = "Pengiriman data USB gagal"
+                return false
+            }
+
+            offset += sent
+        }
+
+        true
+
+    } catch (e: Exception) {
+        status.text = "Kesalahan USB: ${e.message}"
+        false
+    }
+}
+
   // onCreate start
 
 override fun onCreate(savedInstanceState: Bundle?) {
