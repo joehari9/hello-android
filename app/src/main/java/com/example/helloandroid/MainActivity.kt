@@ -82,6 +82,9 @@ private lateinit var printButton: Button
         private const val REQUEST_PDF = 200
         private const val APP_WATERMARK =
         "Generate by: JZ Receipt Printer"
+        private const val ACTION_USB_PERMISSION =
+        "com.example.helloandroid.USB_PERMISSION"
+        private const val REQUEST_USB = 300
     }
 
 // Daftar perangkat yang ditemukan saat scan
