@@ -34,6 +34,7 @@ import android.app.AlertDialog
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.IntentFilter
+import android.widget.PopupWindow
 
 class MainActivity : Activity() {
 
@@ -213,6 +214,54 @@ val menuButton = TextView(this).apply {
     isFocusable = true
 }
 
+
+ // POPUP MENU
+val popupMenu = PopupWindow(this).apply {
+    val menuLayout = LinearLayout(this@MainActivity).apply {
+        orientation = LinearLayout.VERTICAL
+        setPadding(
+            dp(8), dp(8),
+            dp(8), dp(8)
+        )
+        background = rounded(cardColor, 14f)
+    }
+
+    val menuItems = listOf(
+        "ⓘ   About",
+        "🖨   Printer",
+        "❔   Help",
+        "⌘   GitHub"
+    )
+
+    menuItems.forEach { item ->
+        val menuItem = TextView(this@MainActivity).apply {
+            text = item
+            textSize = 14f
+            setTextColor(Color.WHITE)
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(dp(16), dp(12), dp(24), dp(12))
+            isClickable = true
+            isFocusable = true
+            background = rippleRounded(cardColor, 8f)
+        }
+
+        menuLayout.addView(
+            menuItem,
+            LinearLayout.LayoutParams(
+                dp(180), dp(46)
+            )
+        )
+    }
+
+    contentView = menuLayout
+    width = dp(196)
+    height = LinearLayout.LayoutParams.WRAP_CONTENT
+    isFocusable = true
+    elevation = dp(8).toFloat()
+    setBackgroundDrawable(
+        rounded(cardColor, 14f)
+    )
+}
 
 
 // SUSUN HEADER
