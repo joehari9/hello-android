@@ -188,6 +188,24 @@ private val usbPermissionReceiver = object : BroadcastReceiver() {
     }
 }
 
+// DETEKSI USB DIPASANG / DILEPAS
+private val usbDeviceReceiver = object : BroadcastReceiver() {
+
+    override fun onReceive(context: Context, intent: Intent) {
+
+        when (intent.action) {
+
+            UsbManager.ACTION_USB_DEVICE_ATTACHED -> {
+                scanUsbDevices()
+            }
+
+            UsbManager.ACTION_USB_DEVICE_DETACHED -> {
+                disconnectUsbPrinter()
+                scanUsbDevices()
+            }
+        }
+    }
+}
 
 // SCAN USB PRINTER
 private fun scanUsbDevices() {
