@@ -203,9 +203,9 @@ headerTitle.addView(appName)
 headerTitle.addView(appSubtitle)
 
 // TOMBOL HEADER
-val settingsButton = TextView(this).apply {
-    text = "⚙️"
-    textSize = 23f
+val menuButton = TextView(this).apply {
+    text = "⋮"
+    textSize = 30f
     gravity = Gravity.CENTER
     setTextColor(Color.WHITE)
     background = rippleRounded(cardColor, 12f)
@@ -213,15 +213,6 @@ val settingsButton = TextView(this).apply {
     isFocusable = true
 }
 
-val menuButton = TextView(this).apply {
-    text = "☰"
-    textSize = 23f
-    gravity = Gravity.CENTER
-    setTextColor(Color.WHITE)
-    background = rippleRounded(cardColor, 12f)
-    isClickable = true
-    isFocusable = true
-}
 
 // SUSUN HEADER
 header.addView(
