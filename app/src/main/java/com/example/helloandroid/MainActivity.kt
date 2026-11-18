@@ -335,9 +335,22 @@ val headerLine = View(this).apply {
         background = rounded(cardColor, 22f)
     }
 
+
+    // PANEL INFORMASI PRINTER
+    val connectionInfoBox = LinearLayout(this).apply {
+        orientation = LinearLayout.VERTICAL
+        setPadding(dp(14), dp(12), dp(14), dp(12))
+
+        background = GradientDrawable().apply {
+            setColor(cardColor)
+            cornerRadius = dp(14).toFloat()
+            setStroke(dp(1), green)
+        }
+    }
+
     deviceInfo = TextView(this).apply {
         text = "Printer: Belum ditemukan"
-        textSize = 16f
+        textSize = 15f
         typeface = Typeface.DEFAULT_BOLD
         setTextColor(white)
     }
@@ -346,11 +359,22 @@ val headerLine = View(this).apply {
         text = "Status: Belum terhubung"
         textSize = 13f
         setTextColor(muted)
-        setPadding(0, 8, 0, 12)
+        setPadding(0, dp(8), 0, 0)
     }
 
-    connectionPanel.addView(deviceInfo)
-    connectionPanel.addView(status)
+    connectionInfoBox.addView(deviceInfo)
+    connectionInfoBox.addView(status)
+
+    connectionPanel.addView(
+        connectionInfoBox,
+        LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        ).apply {
+            bottomMargin = dp(14)
+        }
+    )
+
 
 // Tombol pencarian
 val searchButton = TextView(this).apply {
