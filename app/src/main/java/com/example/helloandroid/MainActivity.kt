@@ -187,6 +187,90 @@ private val usbPermissionReceiver = object : BroadcastReceiver() {
 }
 
 
+// SCAN USB PRINTER
+private fun scanUsbDevices() {
+
+    usbManager = getSystemService(
+        Context.USB_SERVICE
+    ) as UsbManager
+
+    val devices = usbManager!!.deviceList.values
+
+    var foundDevice: UsbDevice? = null
+    var foundInterface: UsbInterface? = null
+    var foundEndpointOut: UsbEndpoint? = null
+    var foundEndpointIn: UsbEndpoint? = null
+
+    for (device in devices) {
+
+        for (i in 0 until device.interfaceCount) {
+
+            val usbIntf = device.getInterface(i)
+
+            // Periksa USB Printer Class
+            if (usbIntf.interfaceClass ==
+                UsbConstants.USB_CLASS_PRINTER
+            ) {
+
+                var endpointOut: UsbEndpoint? = null
+                var endpointIn: UsbEndpoint? = null
+
+                for (j in 0 until usbIntf.endpointCount) {
+
+                    val endpoint = usbIntf.getEndpoint(j)
+
+                    if (endpoint.type ==
+                        UsbConstants.USB_ENDPOINT_XFER_BULK
+                    ) {
+
+                        if (endpoint.direction ==
+                            UsbConstants.USB_DIR_OUT
+                        ) {
+                            endpointOut = endpoint
+                        }
+
+                        if (endpoint.direction ==
+                            UsbConstants.USB_DIR_IN
+                        ) {
+                            endpointIn = endpoint
+                        }
+                    }
+                }
+
+                // Printer harus memiliki endpoint OUT
+                if (endpointOut != null) {
+
+                    foundDevice = device
+                    foundInterface = usbIntf
+                    foundEndpointOut = endpointOut
+                    foundEndpointIn = endpointIn
+
+                    break
+                }
+            }
+        }
+
+        if (foundDevice != null) break
+    }
+
+    if (foundDevice != null) {
+
+        usbDevice = foundDevice
+        usbInterface = foundInterface
+        usbEndpointOut = foundEndpointOut
+        usbEndpointIn = foundEndpointIn
+
+        deviceInfo.text = "USB: Printer terdeteksi"
+        status.text = "Printer USB menunggu koneksi"
+
+    } else {
+
+        deviceInfo.text = "USB: Tidak ada printer ditemukan"
+        status.text = "Menunggu perangkat USB"
+    }
+}
+
+
   // onCreate start
 
 override fun onCreate(savedInstanceState: Bundle?) {
