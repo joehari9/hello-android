@@ -78,6 +78,9 @@ private lateinit var connectButton: Button
 private lateinit var selectPdfButton: Button
 private lateinit var printButton: Button
 
+private var usbPermissionReceiverRegistered = false
+private var usbDeviceReceiverRegistered = false
+
     companion object {
         private const val REQUEST_BT = 100
         private const val REQUEST_PDF = 200
