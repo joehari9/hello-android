@@ -204,7 +204,7 @@ headerTitle.addView(appSubtitle)
 
 // TOMBOL HEADER
 val settingsButton = TextView(this).apply {
-    text = "⚙︎"
+    text = "⚙️"
     textSize = 23f
     gravity = Gravity.CENTER
     setTextColor(Color.WHITE)
@@ -400,7 +400,7 @@ val previewPanel = FrameLayout(this).apply {
 previewPlaceholder = LinearLayout(this).apply {
     orientation = LinearLayout.VERTICAL
     gravity = Gravity.CENTER
-    translationY = dp(20).toFloat()
+    translationY = dp(30).toFloat()
 }
 
 // Ikon kertas
