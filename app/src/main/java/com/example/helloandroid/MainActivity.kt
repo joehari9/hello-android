@@ -65,6 +65,7 @@ private var usbEndpointOut: UsbEndpoint? = null
 private var usbEndpointIn: UsbEndpoint? = null
 
 private var usbPermissionGranted = false
+private var usbPermissionReceiverRegistered = false
     
 
 private lateinit var pdfPreview: ImageView
