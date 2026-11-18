@@ -421,6 +421,33 @@ private fun sendUsbData(data: ByteArray): Boolean {
     }
 }
 
+// MEMUTUS KONEKSI USB
+private fun disconnectUsbPrinter() {
+
+    try {
+        if (usbConnection != null) {
+            usbInterface?.let {
+                usbConnection?.releaseInterface(it)
+            }
+
+            usbConnection?.close()
+        }
+    } catch (e: Exception) {
+        // Abaikan jika perangkat sudah dilepas
+    }
+
+    usbConnection = null
+    usbDevice = null
+    usbInterface = null
+    usbEndpointOut = null
+    usbEndpointIn = null
+
+    usbPermissionGranted = false
+
+    status.text = "USB dilepas"
+    deviceInfo.text = "Printer: Belum terhubung"
+}
+
   // onCreate start
 
 override fun onCreate(savedInstanceState: Bundle?) {
