@@ -264,6 +264,8 @@ private fun scanUsbDevices() {
         deviceInfo.text = "USB: Printer terdeteksi"
         status.text = "Printer USB menunggu koneksi"
 
+        requestUsbPermission(foundDevice)
+
     } else {
 
         deviceInfo.text = "USB: Tidak ada printer ditemukan"
