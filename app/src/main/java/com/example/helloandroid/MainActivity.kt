@@ -308,7 +308,7 @@ val headerLine = View(this).apply {
 
 // Tombol pencarian
 val searchButton = TextView(this).apply {
-    text = "\1F50D  SCAN DEVICE"
+    text = "\uD83D\uDD0D  SCAN DEVICE"
     textSize = 14f
     typeface = Typeface.DEFAULT_BOLD
     gravity = Gravity.CENTER
