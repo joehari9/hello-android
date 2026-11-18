@@ -263,6 +263,18 @@ val popupMenu = PopupWindow(this).apply {
     )
 }
 
+menuButton.setOnClickListener {
+    if (popupMenu.isShowing) {
+        popupMenu.dismiss()
+    } else {
+        popupMenu.showAsDropDown(
+            menuButton,
+            0,
+            dp(4),
+            Gravity.END
+        )
+    }
+}
 
 // SUSUN HEADER
 header.addView(
