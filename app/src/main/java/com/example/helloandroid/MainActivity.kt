@@ -400,7 +400,7 @@ val previewPanel = FrameLayout(this).apply {
 previewPlaceholder = LinearLayout(this).apply {
     orientation = LinearLayout.VERTICAL
     gravity = Gravity.CENTER
-    translationY = dp(15).toFloat()
+    translationY = dp(20).toFloat()
 }
 
 // Ikon kertas
