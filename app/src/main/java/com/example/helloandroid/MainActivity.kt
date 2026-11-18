@@ -492,6 +492,7 @@ if (Build.VERSION.SDK_INT >= 33) {
 }
 
 usbPermissionReceiverRegistered = true
+usbDeviceReceiverRegistered = true
 
     val manager = getSystemService(BluetoothManager::class.java)
     adapter = manager.adapter
