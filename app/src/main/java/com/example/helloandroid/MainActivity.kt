@@ -214,6 +214,7 @@ val menuButton = TextView(this).apply {
 }
 
 
+
 // SUSUN HEADER
 header.addView(
     logo,
@@ -225,16 +226,9 @@ header.addView(
     LinearLayout.LayoutParams(0, dp(44), 1f)
 )
 
-header.addView(
-    settingsButton,
-    LinearLayout.LayoutParams(dp(42), dp(42))
-)
-
 val menuParams = LinearLayout.LayoutParams(
     dp(42), dp(42)
-).apply {
-    marginStart = dp(8)
-}
+)
 
 header.addView(menuButton, menuParams)
 
