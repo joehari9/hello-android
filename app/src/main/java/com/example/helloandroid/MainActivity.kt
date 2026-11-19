@@ -376,6 +376,7 @@ socket = null
 
         deviceInfo.text = "USB: ${device.productName ?: "Printer USB"}"
         status.text = "Printer USB terhubung"
+        printButton.isEnabled = true
         updateBluetoothButtons()
 
     } catch (e: Exception) {
@@ -448,6 +449,7 @@ private fun disconnectUsbPrinter() {
 
     status.text = "USB dilepas"
     deviceInfo.text = "Printer: Belum terhubung"
+    printButton.isEnabled = false
     updateBluetoothButtons()
 }
 
