@@ -2,65 +2,104 @@
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="36dp"
     android:height="36dp"
-    android:viewportWidth="48"
-    android:viewportHeight="48">
+    android:viewportWidth="64"
+    android:viewportHeight="64">
 
     <!-- Kertas bagian atas -->
     <path
-        android:fillColor="@android:color/transparent"
-        android:strokeColor="#FFFFFF"
-        android:strokeWidth="2.8"
-        android:strokeLineCap="round"
-        android:strokeLineJoin="round"
+        android:fillColor="#FFFFFF"
         android:pathData="
-            M15,16
-            L15,5
-            L33,5
-            L33,16"/>
+            M17,4
+            L43,4
+            L49,10
+            L49,27
+            L15,27
+            L15,6
+            Q15,4 17,4 Z"/>
 
-    <!-- Badan printer -->
+    <!-- Lipatan kertas -->
     <path
-        android:fillColor="@android:color/transparent"
-        android:strokeColor="#FFFFFF"
-        android:strokeWidth="3"
-        android:strokeLineCap="round"
-        android:strokeLineJoin="round"
+        android:fillColor="#B9D2F5"
         android:pathData="
-            M12,16
-            L36,16
-            Q41,16 41,21
-            L41,32
-            L33,32
-            M15,32
-            L7,32
-            L7,21
-            Q7,16 12,16 Z"/>
+            M43,4
+            L43,11
+            L49,11 Z"/>
 
-    <!-- Kertas keluar -->
+    <!-- Badan printer biru -->
     <path
-        android:fillColor="@android:color/transparent"
-        android:strokeColor="#FFFFFF"
-        android:strokeWidth="2.8"
-        android:strokeLineCap="round"
-        android:strokeLineJoin="round"
+        android:fillColor="#1769D2"
         android:pathData="
-            M15,28
-            L15,43
-            L33,43
-            L33,28"/>
+            M12,19
+            L52,19
+            Q59,19 59,26
+            L59,43
+            Q59,49 53,49
+            L11,49
+            Q5,49 5,43
+            L5,26
+            Q5,19 12,19 Z"/>
 
-    <!-- Garis pada kertas -->
+    <!-- Bagian bawah printer -->
     <path
-        android:strokeColor="#FFFFFF"
-        android:strokeWidth="2"
-        android:strokeLineCap="round"
+        android:fillColor="#123C91"
         android:pathData="
-            M19,34 L29,34
-            M19,38 L29,38"/>
+            M5,39
+            L59,39
+            L59,44
+            Q59,49 53,49
+            L11,49
+            Q5,49 5,44 Z"/>
 
-    <!-- Lampu indikator -->
+    <!-- Slot keluaran kertas -->
+    <path
+        android:fillColor="#092B69"
+        android:pathData="
+            M14,35
+            L50,35
+            Q53,35 53,38
+            L53,41
+            L11,41
+            L11,38
+            Q11,35 14,35 Z"/>
+
+    <!-- Kertas hasil cetak -->
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M34,21 A1.8,1.8 0,1 0,34 24.6 A1.8,1.8 0,1 0,34 21 Z"/>
+        android:pathData="
+            M16,39
+            L48,39
+            L45,59
+            L19,59 Z"/>
+
+    <!-- Garis cetakan pada kertas -->
+    <path
+        android:fillColor="#91AEDD"
+        android:pathData="
+            M23,45
+            L41,45
+            Q43,45 43,47
+            Q43,49 41,49
+            L23,49
+            Q21,49 21,47
+            Q21,45 23,45 Z"/>
+
+    <path
+        android:fillColor="#91AEDD"
+        android:pathData="
+            M23,52
+            L39,52
+            Q41,52 41,54
+            Q41,55 39,55
+            L23,55
+            Q21,55 21,54
+            Q21,52 23,52 Z"/>
+
+    <!-- Lampu indikator hijau -->
+    <path
+        android:fillColor="#35E58B"
+        android:pathData="
+            M47,25
+            A3,3 0 1,0 47,31
+            A3,3 0 1,0 47,25 Z"/>
 
 </vector>
