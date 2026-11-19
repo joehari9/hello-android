@@ -451,6 +451,7 @@ private fun disconnectUsbPrinter() {
 
     status.text = "USB dilepas"
     deviceInfo.text = "Printer: Belum terhubung"
+    updateBluetoothButtons()
 }
 
   // onCreate start
