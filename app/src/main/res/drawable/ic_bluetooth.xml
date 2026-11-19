@@ -1,0 +1,46 @@
+
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+
+    <!-- Latar oval biru -->
+    <path
+        android:fillColor="#3157C8"
+        android:pathData="
+            M24,3
+            C16,3 10,9 10,17
+            L10,31
+            C10,39 16,45 24,45
+            C32,45 38,39 38,31
+            L38,17
+            C38,9 32,3 24,3 Z"/>
+
+    <!-- Simbol Bluetooth putih -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="
+            M23,5
+            L36,16
+            L28,24
+            L36,32
+            L23,43
+            L21,43
+            L21,27
+            L12,37
+            L9,34
+            L19,24
+            L9,14
+            L12,11
+            L21,21
+            L21,5 Z
+            M25,11
+            L25,19
+            L30,15
+            Z
+            M25,29
+            L25,37
+            L30,33
+            Z"/>
+</vector>
