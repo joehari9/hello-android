@@ -1092,6 +1092,10 @@ private fun requestBluetoothPermission() {
         }
     }
 
+    // PERIKSA APAKAH USB SEDANG AKTIF
+private fun isUsbPrinterConnected(): Boolean {
+    return usbConnection != null && usbDevice != null
+}
 
 private fun findPrinter() {
     if (!hasBluetoothPermission()) {
