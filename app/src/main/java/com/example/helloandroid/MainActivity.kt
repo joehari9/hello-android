@@ -1098,6 +1098,18 @@ private fun isUsbPrinterConnected(): Boolean {
     return usbConnection != null && usbDevice != null
 }
 
+// ATUR TOMBOL BLUETOOTH
+private fun updateBluetoothButtons() {
+
+    val enabled = !isUsbPrinterConnected()
+
+    searchButton.isEnabled = enabled
+    connectButton.isEnabled = enabled
+
+    searchButton.alpha = if (enabled) 1f else 0.4f
+    connectButton.alpha = if (enabled) 1f else 0.4f
+}
+
 private fun findPrinter() {
     if (!hasBluetoothPermission()) {
         requestBluetoothPermission()
