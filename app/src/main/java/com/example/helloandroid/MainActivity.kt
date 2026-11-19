@@ -364,6 +364,13 @@ private fun connectUsbPrinter() {
             status.text = "Gagal mengambil interface USB"
             return
         }
+        // TUTUP BLUETOOTH JIKA USB AKTIF
+        try {
+            socket?.close()
+        } catch (_: Exception) {
+        }
+
+socket = null
 
         usbPermissionGranted = true
 
