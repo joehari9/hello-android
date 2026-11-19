@@ -77,7 +77,7 @@ private var processedBitmap: Bitmap? = null
 private lateinit var status: TextView
 private lateinit var deviceInfo: TextView
 
-private lateinit var connectButton: Button
+private lateinit var connectButton: LinearLayout
 private lateinit var selectPdfButton: Button
 private lateinit var printButton: Button
 private lateinit var searchButton: LinearLayout
@@ -802,25 +802,52 @@ searchButton = LinearLayout(this).apply {
     }
 }
 
+
 // Tombol koneksi
-connectButton = Button(this).apply {
-    text = "\uD83D\uDD17  CONNECT PRINTER"
-    isAllCaps = false
-    textSize = 14f
-    typeface = Typeface.DEFAULT_BOLD
+connectButton = LinearLayout(this).apply {
+    orientation = LinearLayout.HORIZONTAL
     gravity = Gravity.CENTER
-
-    setTextColor(Color.WHITE)
     background = rippleRounded(Color.rgb(48, 79, 110), 14f)
-    backgroundTintList = null
 
-    minHeight = dp(56)
+    isClickable = true
+    isFocusable = true
+
     setPadding(dp(12), dp(4), dp(12), dp(4))
+    minimumHeight = dp(56)
+
+    // Ikon Bluetooth dengan gelombang koneksi
+    addView(ImageView(this@MainActivity).apply {
+        setImageResource(R.drawable.ic_bluetooth_connect)
+
+        layoutParams = LinearLayout.LayoutParams(
+            dp(24),
+            dp(24)
+        )
+    })
+
+    // Jarak ikon dan tulisan
+    addView(Space(this@MainActivity).apply {
+        layoutParams = LinearLayout.LayoutParams(
+            dp(5),
+            1
+        )
+    })
+
+    // Tulisan tombol
+    addView(TextView(this@MainActivity).apply {
+        text = "CONNECT PRINTER"
+        textSize = 14f
+        typeface = Typeface.DEFAULT_BOLD
+        setTextColor(Color.WHITE)
+        gravity = Gravity.CENTER
+        includeFontPadding = false
+    })
 
     setOnClickListener {
         connectPrinter()
     }
 }
+
 
 connectionPanel.addView(
     searchButton,
