@@ -770,7 +770,7 @@ searchButton = TextView(this).apply {
     val bluetoothIcon = getDrawable(R.drawable.ic_bluetooth)
     bluetoothIcon?.setBounds(0, 0, dp(28), dp(28))
     setCompoundDrawables(bluetoothIcon, null, null, null)
-    compoundDrawablePadding = dp(8)
+    compoundDrawablePadding = dp(2)
 
     background = rippleRounded(blue, 14f)
 
