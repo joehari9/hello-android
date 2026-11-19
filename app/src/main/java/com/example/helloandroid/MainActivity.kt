@@ -1253,6 +1253,7 @@ private fun finishBluetoothScan() {
         }.start()
     }
 
+//fungsi cetak
 
 private fun printReceipt() {
 
@@ -1262,25 +1263,67 @@ private fun printReceipt() {
         status.text = "Pilih PDF resi terlebih dahulu"
         return
     }
+
     val printBitmap = addWatermark(
-    bitmap,
-    APP_WATERMARK
-)
+        bitmap,
+        APP_WATERMARK
+    )
+
+    // PRIORITAS USB
+    val useUsb = isUsbPrinterConnected()
+
+    // BLUETOOTH SEBAGAI CADANGAN
     val activeSocket = socket
 
-    if (activeSocket == null || !activeSocket.isConnected) {
+    if (!useUsb &&
+        (activeSocket == null || !activeSocket.isConnected)
+    ) {
         status.text = "Printer belum terhubung"
         return
     }
 
-    status.text = "Sedang mencetak resi..."
+    status.text = if (useUsb) {
+        "Mencetak melalui USB..."
+    } else {
+        "Mencetak melalui Bluetooth..."
+    }
 
     Thread {
         try {
-            val output = activeSocket.outputStream
 
-            // Inisialisasi printer dan posisi tengah
-            output.write(
+            val bluetoothOutput =
+                if (useUsb) null else activeSocket!!.outputStream
+
+            // FUNGSI PENGIRIM DATA
+            val sendData: (ByteArray) -> Unit = { data ->
+
+                val success = if (useUsb) {
+
+                    sendUsbData(data)
+
+                } else {
+
+                    try {
+                        bluetoothOutput!!.write(data)
+                        bluetoothOutput.flush()
+                        true
+                    } catch (_: Exception) {
+                        false
+                    }
+                }
+
+                if (!success) {
+                    throw RuntimeException(
+                        if (useUsb)
+                            "Koneksi USB terputus"
+                        else
+                            "Koneksi Bluetooth gagal"
+                    )
+                }
+            }
+
+            // INISIALISASI PRINTER DAN POSISI TENGAH
+            sendData(
                 byteArrayOf(
                     0x1B, 0x40,
                     0x1B, 0x61, 0x01
@@ -1291,15 +1334,15 @@ private fun printReceipt() {
             val height = printBitmap.height
             val widthBytes = width / 8
 
-            // Kirim gambar per 16 baris
+            // KIRIM GAMBAR PER 16 BARIS
             var y = 0
 
             while (y < height) {
 
                 val chunkHeight = minOf(16, height - y)
 
-                // Perintah ESC/POS GS v 0
-                output.write(
+                // PERINTAH ESC/POS GS v 0
+                sendData(
                     byteArrayOf(
                         0x1D, 0x76, 0x30, 0x00,
                         (widthBytes and 0xFF).toByte(),
@@ -1309,12 +1352,16 @@ private fun printReceipt() {
                     )
                 )
 
-                val imageData = ByteArray(widthBytes * chunkHeight)
+                val imageData =
+                    ByteArray(widthBytes * chunkHeight)
 
                 for (row in 0 until chunkHeight) {
                     for (x in 0 until width) {
 
-                        val pixel = printBitmap.getPixel(x, y + row)
+                        val pixel = printBitmap.getPixel(
+                            x,
+                            y + row
+                        )
 
                         val r = android.graphics.Color.red(pixel)
                         val g = android.graphics.Color.green(pixel)
@@ -1340,29 +1387,31 @@ private fun printReceipt() {
                     }
                 }
 
-                output.write(imageData)
-                output.flush()
+                sendData(imageData)
 
                 Thread.sleep(10)
 
                 y += chunkHeight
             }
 
-            // Feed dan potong kertas
-            output.write(
+            // FEED DAN POTONG KERTAS
+            sendData(
                 byteArrayOf(
                     0x1B, 0x64, 0x04,
                     0x1D, 0x56, 0x41, 0x03
                 )
             )
 
-            output.flush()
-
             runOnUiThread {
-                status.text = "Resi berhasil dikirim ke printer!"
+                status.text = if (useUsb) {
+                    "Resi berhasil dicetak melalui USB!"
+                } else {
+                    "Resi berhasil dicetak melalui Bluetooth!"
+                }
             }
 
         } catch (e: Exception) {
+
             runOnUiThread {
                 status.text = "Gagal mencetak: ${e.message}"
             }
@@ -1370,6 +1419,7 @@ private fun printReceipt() {
 
     }.start()
 }
+
 
     // fungsi dedtroy
     override fun onDestroy() {
