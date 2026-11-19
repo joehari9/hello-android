@@ -767,10 +767,12 @@ searchButton = TextView(this).apply {
     setTextColor(Color.WHITE)
 
     // Ikon Bluetooth di sebelah kiri teks
-    val bluetoothIcon = getDrawable(R.drawable.ic_bluetooth)
-    bluetoothIcon?.setBounds(0, 0, dp(28), dp(28))
-    setCompoundDrawables(bluetoothIcon, null, null, null)
-    compoundDrawablePadding = dp(2)
+val bluetoothIcon = getDrawable(R.drawable.ic_bluetooth)
+bluetoothIcon?.setBounds(0, 0, dp(20), dp(20))
+setCompoundDrawablesRelative(
+    bluetoothIcon, null, null, null
+)
+compoundDrawablePadding = dp(4)
 
     background = rippleRounded(blue, 14f)
 
