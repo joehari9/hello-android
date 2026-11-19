@@ -78,7 +78,7 @@ private lateinit var status: TextView
 private lateinit var deviceInfo: TextView
 
 private lateinit var connectButton: LinearLayout
-private lateinit var selectPdfButton: Button
+private lateinit var selectPdfButton: LinearLayout
 private lateinit var printButton: Button
 private lateinit var searchButton: LinearLayout
 private var backPressedTime = 0L
@@ -983,38 +983,65 @@ layout.addView(
 
 space(18)
 
-    // Tombol pilih PDF
-selectPdfButton = Button(this).apply {
-    text = "📄 SELECT PDF"
-    isAllCaps = false
-    textSize = 14f
-    typeface = Typeface.DEFAULT_BOLD
+
+// Tombol pilih PDF
+selectPdfButton = LinearLayout(this).apply {
+    orientation = LinearLayout.HORIZONTAL
     gravity = Gravity.CENTER
-
-    setTextColor(Color.WHITE)
     background = rippleRounded(blue, 14f)
-    backgroundTintList = null
 
-    minHeight = dp(56)
+    isClickable = true
+    isFocusable = true
+
     setPadding(dp(12), dp(4), dp(12), dp(4))
+    minimumHeight = dp(56)
 
-        setOnClickListener {
-            val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
-                addCategory(Intent.CATEGORY_OPENABLE)
-                type = "application/pdf"
-            }
+    // Ikon PDF
+    addView(ImageView(this@MainActivity).apply {
+        setImageResource(R.drawable.ic_pdf)
 
-            startActivityForResult(intent, REQUEST_PDF)
-        }
-    }
-
-    layout.addView(
-        selectPdfButton,
-        LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.MATCH_PARENT,
-            dp(56)
+        layoutParams = LinearLayout.LayoutParams(
+            dp(28),
+            dp(28)
         )
+    })
+
+    // Jarak ikon dan tulisan
+    addView(Space(this@MainActivity).apply {
+        layoutParams = LinearLayout.LayoutParams(
+            dp(5),
+            1
+        )
+    })
+
+    // Tulisan tombol
+    addView(TextView(this@MainActivity).apply {
+        text = "SELECT PDF"
+        textSize = 14f
+        typeface = Typeface.DEFAULT_BOLD
+        setTextColor(Color.WHITE)
+        gravity = Gravity.CENTER
+        includeFontPadding = false
+    })
+
+    setOnClickListener {
+        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+            addCategory(Intent.CATEGORY_OPENABLE)
+            type = "application/pdf"
+        }
+
+        startActivityForResult(intent, REQUEST_PDF)
+    }
+}
+
+// Masukkan tombol ke layout
+layout.addView(
+    selectPdfButton,
+    LinearLayout.LayoutParams(
+        LinearLayout.LayoutParams.MATCH_PARENT,
+        dp(56)
     )
+)
 
     // Tombol cetak
     printButton = Button(this).apply {
