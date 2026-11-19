@@ -79,6 +79,7 @@ private lateinit var connectButton: Button
 private lateinit var selectPdfButton: Button
 private lateinit var printButton: Button
 private lateinit var searchButton: TextView
+private var backPressedTime = 0L
 
 
 
