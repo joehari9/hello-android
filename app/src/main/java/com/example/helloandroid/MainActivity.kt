@@ -757,13 +757,20 @@ val headerLine = View(this).apply {
     )
 
 
-// Tombol pencarian
+
+// Tombol pencarian Bluetooth
 searchButton = TextView(this).apply {
-    text = "\uD83D\uDD0D  SCAN DEVICE"
+    text = "SCAN DEVICE"
     textSize = 14f
     typeface = Typeface.DEFAULT_BOLD
     gravity = Gravity.CENTER
     setTextColor(Color.WHITE)
+
+    // Ikon Bluetooth di sebelah kiri teks
+    val bluetoothIcon = getDrawable(R.drawable.ic_bluetooth)
+    bluetoothIcon?.setBounds(0, 0, dp(28), dp(28))
+    setCompoundDrawables(bluetoothIcon, null, null, null)
+    compoundDrawablePadding = dp(8)
 
     background = rippleRounded(blue, 14f)
 
@@ -778,6 +785,7 @@ searchButton = TextView(this).apply {
         findPrinter()
     }
 }
+
 
 
 
