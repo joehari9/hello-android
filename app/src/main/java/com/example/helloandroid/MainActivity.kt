@@ -1351,14 +1351,39 @@ private fun printReceipt() {
     }.start()
 }
 
-    
+    // fungsi dedtroy
     override fun onDestroy() {
+
+    // TUTUP KONEKSI BLUETOOTH
+    try {
+        socket?.close()
+    } catch (_: Exception) {
+    }
+
+    // TUTUP KONEKSI USB
+    disconnectUsbPrinter()
+
+    // LEPAS USB PERMISSION RECEIVER
+    if (usbPermissionReceiverRegistered) {
         try {
-            socket?.close()
+            unregisterReceiver(usbPermissionReceiver)
         } catch (_: Exception) {
         }
 
-        super.onDestroy()
+        usbPermissionReceiverRegistered = false
+    }
+
+    // LEPAS USB DEVICE RECEIVER
+    if (usbDeviceReceiverRegistered) {
+        try {
+            unregisterReceiver(usbDeviceReceiver)
+        } catch (_: Exception) {
+        }
+
+        usbDeviceReceiverRegistered = false
+    }
+
+    super.onDestroy()
     }
     // Fungsi untuk menerima file PDF yang dipilih
     override fun onActivityResult(
