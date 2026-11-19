@@ -1035,6 +1035,8 @@ rootLayout.addView(
 
 // TAMPILKAN
 setContentView(rootLayout)
+// CEK PRINTER USB SAAT APLIKASI DIBUKA
+scanUsbDevices()
 }
 
   // onCreate end
