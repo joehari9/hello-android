@@ -369,6 +369,7 @@ private fun connectUsbPrinter() {
 
         deviceInfo.text = "USB: ${device.productName ?: "Printer USB"}"
         status.text = "Printer USB terhubung"
+        updateBluetoothButtons()
 
     } catch (e: Exception) {
         usbConnection?.close()
