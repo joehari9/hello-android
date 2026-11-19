@@ -802,10 +802,6 @@ searchButton = LinearLayout(this).apply {
     }
 }
 
-
-
-
-
 // Tombol koneksi
 connectButton = Button(this).apply {
     text = "\uD83D\uDD17  CONNECT PRINTER"
