@@ -66,6 +66,7 @@ private var usbEndpointIn: UsbEndpoint? = null
 
 private var usbPermissionGranted = false
 private var usbPermissionReceiverRegistered = false
+private var usbDeviceReceiverRegistered = false
     
 
 private lateinit var pdfPreview: ImageView
@@ -79,8 +80,7 @@ private lateinit var selectPdfButton: Button
 private lateinit var printButton: Button
 private lateinit var searchButton: TextView
 
-private var usbPermissionReceiverRegistered = false
-private var usbDeviceReceiverRegistered = false
+
 
     companion object {
         private const val REQUEST_BT = 100
