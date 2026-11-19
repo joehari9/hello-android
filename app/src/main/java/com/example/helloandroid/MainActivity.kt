@@ -79,7 +79,7 @@ private lateinit var deviceInfo: TextView
 
 private lateinit var connectButton: LinearLayout
 private lateinit var selectPdfButton: LinearLayout
-private lateinit var printButton: Button
+private lateinit var printButton: LinearLayout
 private lateinit var searchButton: LinearLayout
 private var backPressedTime = 0L
 
@@ -1043,36 +1043,56 @@ layout.addView(
     )
 )
 
-    // Tombol cetak
-    printButton = Button(this).apply {
-    text = "🖨 PRINT"
-    isAllCaps = false
-    textSize = 14f
-    typeface = Typeface.DEFAULT_BOLD
+
+// Tombol cetak
+printButton = LinearLayout(this).apply {
+    orientation = LinearLayout.HORIZONTAL
     gravity = Gravity.CENTER
-
-    setTextColor(Color.WHITE)
     background = rippleRounded(green, 14f)
-    backgroundTintList = null
 
-    minHeight = dp(56)
-    setPadding(dp(12), dp(4), dp(12), dp(4))        
+    isClickable = true
+    isFocusable = true
 
-        setOnClickListener {
-            printReceipt()
-        }
+    setPadding(dp(12), dp(4), dp(12), dp(4))
+    minimumHeight = dp(56)
+
+    // Ikon printer
+    addView(ImageView(this@MainActivity).apply {
+        setImageResource(R.drawable.ic_printer)
+        layoutParams = LinearLayout.LayoutParams(dp(28), dp(28))
+    })
+
+    // Jarak ikon dan tulisan
+    addView(Space(this@MainActivity).apply {
+        layoutParams = LinearLayout.LayoutParams(dp(5), 1)
+    })
+
+    // Tulisan tombol
+    addView(TextView(this@MainActivity).apply {
+        text = "PRINT"
+        textSize = 14f
+        typeface = Typeface.DEFAULT_BOLD
+        setTextColor(Color.WHITE)
+        gravity = Gravity.CENTER
+        includeFontPadding = false
+    })
+
+    setOnClickListener {
+        printReceipt()
     }
+}
 
-    val printParams = LinearLayout.LayoutParams(
-        LinearLayout.LayoutParams.MATCH_PARENT,
-        dp(58)
-    ).apply {
-        topMargin = dp(10)
-    }
+val printParams = LinearLayout.LayoutParams(
+    LinearLayout.LayoutParams.MATCH_PARENT,
+    dp(58)
+).apply {
+    topMargin = dp(10)
+}
 
-    layout.addView(printButton, printParams)
+layout.addView(printButton, printParams)
 
-    space(22)
+space(22)
+
 
     // Footer
     val footer = TextView(this).apply {
