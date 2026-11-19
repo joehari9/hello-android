@@ -79,7 +79,7 @@ private lateinit var deviceInfo: TextView
 private lateinit var connectButton: Button
 private lateinit var selectPdfButton: Button
 private lateinit var printButton: Button
-private lateinit var searchButton: TextView
+private lateinit var searchButton: LinearLayout
 private var backPressedTime = 0L
 
 
@@ -756,32 +756,45 @@ val headerLine = View(this).apply {
         }
     )
 
-
-
 // Tombol pencarian Bluetooth
-searchButton = TextView(this).apply {
-    text = "SCAN DEVICE"
-    textSize = 14f
-    typeface = Typeface.DEFAULT_BOLD
+searchButton = LinearLayout(this).apply {
+    orientation = LinearLayout.HORIZONTAL
     gravity = Gravity.CENTER
-    setTextColor(Color.WHITE)
-
-    // Ikon Bluetooth di sebelah kiri teks
-val bluetoothIcon = getDrawable(R.drawable.ic_bluetooth)
-bluetoothIcon?.setBounds(0, 0, dp(20), dp(20))
-setCompoundDrawablesRelative(
-    bluetoothIcon, null, null, null
-)
-compoundDrawablePadding = dp(4)
-
     background = rippleRounded(blue, 14f)
 
     isClickable = true
     isFocusable = true
 
     setPadding(dp(12), dp(4), dp(12), dp(4))
-    minHeight = dp(56)
-    includeFontPadding = false
+    minimumHeight = dp(56)
+
+    // Ikon Bluetooth
+    addView(ImageView(this@MainActivity).apply {
+        setImageResource(R.drawable.ic_bluetooth)
+
+        layoutParams = LinearLayout.LayoutParams(
+            dp(24),
+            dp(24)
+        )
+    })
+
+    // Jarak ikon dengan tulisan
+    addView(Space(this@MainActivity).apply {
+        layoutParams = LinearLayout.LayoutParams(
+            dp(5),
+            1
+        )
+    })
+
+    // Tulisan tombol
+    addView(TextView(this@MainActivity).apply {
+        text = "SCAN DEVICE"
+        textSize = 14f
+        typeface = Typeface.DEFAULT_BOLD
+        setTextColor(Color.WHITE)
+        gravity = Gravity.CENTER
+        includeFontPadding = false
+    })
 
     setOnClickListener {
         findPrinter()
