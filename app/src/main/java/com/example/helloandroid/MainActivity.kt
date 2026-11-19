@@ -77,6 +77,7 @@ private lateinit var deviceInfo: TextView
 private lateinit var connectButton: Button
 private lateinit var selectPdfButton: Button
 private lateinit var printButton: Button
+private lateinit var searchButton: TextView
 
 private var usbPermissionReceiverRegistered = false
 private var usbDeviceReceiverRegistered = false
@@ -754,7 +755,7 @@ val headerLine = View(this).apply {
 
 
 // Tombol pencarian
-val searchButton = TextView(this).apply {
+searchButton = TextView(this).apply {
     text = "\uD83D\uDD0D  SCAN DEVICE"
     textSize = 14f
     typeface = Typeface.DEFAULT_BOLD
