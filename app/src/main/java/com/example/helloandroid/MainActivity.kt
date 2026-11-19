@@ -1201,6 +1201,10 @@ private fun finishBluetoothScan() {
 }
 
     private fun connectPrinter() {
+        if (isUsbPrinterConnected()) {
+    status.text = "Cabut USB OTG terlebih dahulu"
+    return
+        }
         if (!hasBluetoothPermission()) {
             requestBluetoothPermission()
             return
