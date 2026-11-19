@@ -303,10 +303,10 @@ private fun requestUsbPermission(device: UsbDevice) {
 
     // Periksa apakah izin sudah pernah diberikan
     if (manager.hasPermission(device)) {
-        usbDevice = device
-        usbPermissionGranted = true
-        status.text = "Izin USB sudah diberikan"
-        return
+    usbDevice = device
+    usbPermissionGranted = true
+    connectUsbPrinter()
+    return
     }
 
     val permissionIntent = Intent(ACTION_USB_PERMISSION).apply {
