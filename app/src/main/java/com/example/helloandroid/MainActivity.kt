@@ -44,6 +44,7 @@ import android.hardware.usb.UsbEndpoint
 import android.hardware.usb.UsbInterface
 import android.hardware.usb.UsbManager
 import android.widget.Toast
+import android.widget.Space
 
 
 class MainActivity : Activity() {
