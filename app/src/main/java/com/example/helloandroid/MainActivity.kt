@@ -388,15 +388,8 @@ socket = null
 // KIRIM DATA KE PRINTER USB
 private fun sendUsbData(data: ByteArray): Boolean {
 
-    val connection = usbConnection ?: run {
-        status.text = "Printer USB belum terhubung"
-        return false
-    }
-
-    val endpoint = usbEndpointOut ?: run {
-        status.text = "USB OUT endpoint tidak ditemukan"
-        return false
-    }
+    val connection = usbConnection ?: return false
+    val endpoint = usbEndpointOut ?: return false
 
     return try {
         var offset = 0
@@ -418,7 +411,6 @@ private fun sendUsbData(data: ByteArray): Boolean {
             )
 
             if (sent <= 0) {
-                status.text = "Pengiriman data USB gagal"
                 return false
             }
 
@@ -428,11 +420,9 @@ private fun sendUsbData(data: ByteArray): Boolean {
         true
 
     } catch (e: Exception) {
-        status.text = "Kesalahan USB: ${e.message}"
         false
     }
 }
-
 // MEMUTUS KONEKSI USB
 private fun disconnectUsbPrinter() {
 
