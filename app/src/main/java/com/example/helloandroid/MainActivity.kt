@@ -1423,6 +1423,22 @@ private fun printReceipt() {
     }.start()
 }
 
+override fun onBackPressed() {
+    if (System.currentTimeMillis() - backPressedTime < 2000) {
+
+        finishAndRemoveTask()
+
+    } else {
+
+        backPressedTime = System.currentTimeMillis()
+
+        Toast.makeText(
+            this,
+            "Ketuk sekali lagi untuk keluar",
+            Toast.LENGTH_SHORT
+        ).show()
+    }
+}
 
     // fungsi dedtroy
     override fun onDestroy() {
