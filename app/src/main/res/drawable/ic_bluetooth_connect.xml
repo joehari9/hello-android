@@ -1,0 +1,56 @@
+
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+
+    <!-- Latar oval biru -->
+    <path
+        android:fillColor="#3157C8"
+        android:pathData="
+            M24,2
+            C12,2 5,10 5,19
+            L5,29
+            C5,38 12,46 24,46
+            C36,46 43,38 43,29
+            L43,19
+            C43,10 36,2 24,2 Z"/>
+
+    <!-- Simbol Bluetooth putih -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="
+            M18,7 L29,16 L23,22
+            L29,28 L18,37 L16,37
+            L16,25 L10,31 L7,28
+            L14,22 L7,16 L10,13
+            L16,19 L16,7 Z
+            M20,12 L20,19 L24,16 Z
+            M20,25 L20,32 L24,28 Z"/>
+
+    <!-- Gelombang koneksi 1 -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:pathData="M28,17 C32,20 32,24 28,27"/>
+
+    <!-- Gelombang koneksi 2 -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:pathData="M32,13 C39,19 39,25 32,31"/>
+
+    <!-- Gelombang koneksi 3 -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:pathData="M36,9 C45,17 45,27 36,35"/>
+
+</vector>
