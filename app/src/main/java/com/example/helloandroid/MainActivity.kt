@@ -670,7 +670,7 @@ menuItems.forEach { item ->
            }
 
             "❔   Help" -> {
-                // Nanti kita isi
+                HelpDialog.show(this@MainActivity)
             }
 
             "⌘   GitHub" -> {
