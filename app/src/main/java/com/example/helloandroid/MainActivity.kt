@@ -616,25 +616,49 @@ val popupMenu = PopupWindow(this).apply {
         "⌘   GitHub"
     )
 
-    menuItems.forEach { item ->
-        val menuItem = TextView(this@MainActivity).apply {
-            text = item
-            textSize = 14f
-            setTextColor(Color.WHITE)
-            gravity = Gravity.CENTER_VERTICAL
-            setPadding(dp(16), dp(12), dp(24), dp(12))
-            isClickable = true
-            isFocusable = true
-            background = rippleRounded(cardColor, 8f)
-        }
-
-        menuLayout.addView(
-            menuItem,
-            LinearLayout.LayoutParams(
-                dp(180), dp(46)
-            )
-        )
+    
+menuItems.forEach { item ->
+    val menuItem = TextView(this@MainActivity).apply {
+        text = item
+        textSize = 14f
+        setTextColor(Color.WHITE)
+        gravity = Gravity.CENTER_VERTICAL
+        setPadding(dp(16), dp(12), dp(24), dp(12))
+        isClickable = true
+        isFocusable = true
+        background = rippleRounded(cardColor, 8f)
     }
+
+    menuItem.setOnClickListener {
+        popupMenu.dismiss()
+
+        when (item) {
+            "ⓘ   About" -> {
+                AboutDialog.show(this@MainActivity)
+            }
+
+            "🖨   Printer" -> {
+                // Nanti kita isi
+            }
+
+            "❔   Help" -> {
+                // Nanti kita isi
+            }
+
+            "⌘   GitHub" -> {
+                // Nanti kita isi
+            }
+        }
+    }
+
+    menuLayout.addView(
+        menuItem,
+        LinearLayout.LayoutParams(
+            dp(180), dp(46)
+        )
+    )
+}
+
 
     contentView = menuLayout
     width = dp(196)
