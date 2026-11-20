@@ -638,8 +638,36 @@ menuItems.forEach { item ->
             }
 
             "🖨   Printer" -> {
-                // Nanti kita isi
-            }
+
+                val usbActive = isUsbPrinterConnected()
+                val bluetoothActive = socket?.isConnected == true
+
+                val printerName = when {
+                usbActive ->
+                usbDevice?.productName ?: "Printer USB"
+
+                bluetoothActive ->
+                printer?.name ?: "Bluetooth Printer"
+
+                else ->
+                "No Printer Connected"
+           }
+
+                val connectionType = when {
+                usbActive -> "USB"
+                bluetoothActive -> "Bluetooth"
+                else -> "None"
+           }
+
+                val connected = usbActive || bluetoothActive
+
+                PrinterDialog.show(
+                this@MainActivity,
+                printerName,
+                connectionType,
+                connected
+           )
+           }
 
             "❔   Help" -> {
                 // Nanti kita isi
