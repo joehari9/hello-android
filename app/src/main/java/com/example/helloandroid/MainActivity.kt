@@ -598,6 +598,7 @@ val menuButton = TextView(this).apply {
 
 
  // POPUP MENU
+lateinit var popupMenu: PopupWindow
 val popupMenu = PopupWindow(this).apply {
     val menuLayout = LinearLayout(this@MainActivity).apply {
         orientation = LinearLayout.VERTICAL
