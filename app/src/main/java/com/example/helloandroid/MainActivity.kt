@@ -387,6 +387,11 @@ socket = null
         printButton.isEnabled = true
         updateBluetoothButtons()
 
+        showPrinterConnectedNotification(
+        device.productName ?: "Printer USB",
+        "USB"
+       )
+
     } catch (e: Exception) {
         usbConnection?.close()
         usbConnection = null
