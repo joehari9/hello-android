@@ -45,6 +45,9 @@ import android.hardware.usb.UsbInterface
 import android.hardware.usb.UsbManager
 import android.widget.Toast
 import android.widget.Space
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
 
 
 class MainActivity : Activity() {
