@@ -461,23 +461,7 @@ private fun disconnectUsbPrinter() {
     updateBluetoothButtons()
 }
 
-private fun requestNotificationPermission() {
-
-    if (Build.VERSION.SDK_INT >= 33) {
-
-        if (checkSelfPermission(
-                Manifest.permission.POST_NOTIFICATIONS
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-
-            requestPermissions(
-                arrayOf(Manifest.permission.POST_NOTIFICATIONS),
-                REQUEST_NOTIFICATION
-            )
-        }
-    }
-}
-
+//notification 
 private fun createNotificationChannel() {
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -497,6 +481,24 @@ private fun createNotificationChannel() {
         manager.createNotificationChannel(channel)
     }
 }
+
+private fun requestNotificationPermission() {
+
+    if (Build.VERSION.SDK_INT >= 33) {
+
+        if (checkSelfPermission(
+                Manifest.permission.POST_NOTIFICATIONS
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+
+            requestPermissions(
+                arrayOf(Manifest.permission.POST_NOTIFICATIONS),
+                REQUEST_NOTIFICATION
+            )
+        }
+    }
+}
+
 
 private fun showPrinterConnectedNotification(
     printerName: String,
