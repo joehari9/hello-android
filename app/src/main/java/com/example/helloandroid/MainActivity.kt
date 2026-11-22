@@ -96,6 +96,8 @@ private var backPressedTime = 0L
         private const val ACTION_USB_PERMISSION =
         "com.example.helloandroid.USB_PERMISSION"
         private const val REQUEST_USB = 300
+        private const val CHANNEL_ID = "printer_connection"
+        private const val REQUEST_NOTIFICATION = 400
     }
 
 // Daftar perangkat yang ditemukan saat scan
