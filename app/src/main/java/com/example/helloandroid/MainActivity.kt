@@ -461,6 +461,82 @@ private fun disconnectUsbPrinter() {
     updateBluetoothButtons()
 }
 
+private fun requestNotificationPermission() {
+
+    if (Build.VERSION.SDK_INT >= 33) {
+
+        if (checkSelfPermission(
+                Manifest.permission.POST_NOTIFICATIONS
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+
+            requestPermissions(
+                arrayOf(Manifest.permission.POST_NOTIFICATIONS),
+                REQUEST_NOTIFICATION
+            )
+        }
+    }
+}
+
+private fun createNotificationChannel() {
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+
+        val channel = NotificationChannel(
+            CHANNEL_ID,
+            "Printer Connection",
+            NotificationManager.IMPORTANCE_DEFAULT
+        ).apply {
+            description = "Status koneksi printer"
+        }
+
+        val manager = getSystemService(
+            NotificationManager::class.java
+        )
+
+        manager.createNotificationChannel(channel)
+    }
+}
+
+private fun showPrinterConnectedNotification(
+    printerName: String,
+    connectionType: String
+) {
+
+    if (Build.VERSION.SDK_INT >= 33) {
+        if (checkSelfPermission(
+                Manifest.permission.POST_NOTIFICATIONS
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            return
+        }
+    }
+
+    val notification = if (Build.VERSION.SDK_INT >= 26) {
+
+        Notification.Builder(this, CHANNEL_ID)
+
+    } else {
+
+        Notification.Builder(this)
+            .setPriority(Notification.PRIORITY_DEFAULT)
+    }
+
+    notification
+        .setSmallIcon(R.drawable.ic_printer)
+        .setContentTitle("JZ Receipt Printer")
+        .setContentText(
+            "$printerName berhasil terhubung melalui $connectionType"
+        )
+        .setAutoCancel(true)
+
+    val manager = getSystemService(
+        NotificationManager::class.java
+    )
+
+    manager.notify(1001, notification.build())
+}
+
   // onCreate start
 
 override fun onCreate(savedInstanceState: Bundle?) {
