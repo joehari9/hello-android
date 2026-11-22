@@ -544,6 +544,9 @@ private fun showPrinterConnectedNotification(
 override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
 
+    createNotificationChannel()
+    requestNotificationPermission()
+
     // DAFTARKAN USB PERMISSION RECEIVER
 val usbPermissionFilter = IntentFilter(ACTION_USB_PERMISSION)
 
