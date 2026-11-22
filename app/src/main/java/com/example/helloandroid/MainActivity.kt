@@ -1488,16 +1488,16 @@ private fun finishBluetoothScan() {
                 runOnUiThread {
                     status.text = "Bluetooth TERHUBUNG!"
                     printButton.isEnabled = true
+                    showPrinterConnectedNotification(
+                    printer?.name ?: "Bluetooth Printer",
+                    "Bluetooth"
+                   )
                 }
 
             } catch (e: Exception) {
                 runOnUiThread {
                     status.text = "Gagal koneksi: ${e.message}"
                     printButton.isEnabled = false
-                    showPrinterConnectedNotification(
-                    printer?.name ?: "Bluetooth Printer",
-                    "Bluetooth"
-                   )
                 }
             }
         }.start()
