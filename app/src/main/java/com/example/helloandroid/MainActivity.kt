@@ -24,7 +24,6 @@ import android.graphics.Paint
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.RippleDrawable
-import android.graphics.pdf.PdfRenderer
 import android.hardware.usb.UsbConstants
 import android.hardware.usb.UsbDevice
 import android.hardware.usb.UsbDeviceConnection
@@ -68,56 +67,109 @@ class MainActivity : Activity() {
     private var usbPermissionReceiverRegistered = false
     private var usbDeviceReceiverRegistered = false
 
-    // UI REFERENCES
-    private lateinit var pdfPreview: ImageView
-    private lateinit var previewPlaceholder: LinearLayout
-    private var processedBitmap: Bitmap? = null
+    // UI REFERENCES GLOBAL
     private lateinit var status: TextView
     private lateinit var deviceInfo: TextView
-
-    // UI ENHANCEMENT REFERENCES
     private lateinit var statusDot: View
     private lateinit var statusBadgeText: TextView
     private lateinit var statusBadgeBox: LinearLayout
     private lateinit var connectionInfoBox: LinearLayout
-    private lateinit var resolutionBadge: TextView
 
     private lateinit var connectButton: LinearLayout
-    private lateinit var selectPdfButton: LinearLayout
-    private lateinit var printButton: LinearLayout
     private lateinit var searchButton: LinearLayout
+
+    // CONTAINER SUB-HALAMAN DINAMIS
+    private lateinit var contentContainer: FrameLayout
+    private var activeSubPage: String = "HOME" // "HOME", "PRINT_RECEIPT"
+    private var printReceiptController: PrintReceiptView? = null
+
     private var backPressedTime = 0L
 
     // THEME PALETTE (MODERN DARK INDUSTRIAL STUDIO)
-    private val colBgPrimary = Color.parseColor("#0B1120")      // Deep Slate Navy
-    private val colSurface = Color.parseColor("#131C31")        // Elevated Card Surface
-    private val colSurfaceElevated = Color.parseColor("#1A2642")// Inner Panel / Button Secondary
-    private val colBorder = Color.parseColor("#263554")         // Subtle Card Border
-    private val colAccentBlue = Color.parseColor("#2563EB")     // Electric Royal Blue
-    private val colAccentCyan = Color.parseColor("#0EA5E9")     // Cyan Glow
-    private val colSuccess = Color.parseColor("#10B981")        // Emerald Green
-    private val colSuccessBg = Color.parseColor("#064E3B")      // Emerald Dark Tint
-    private val colWarning = Color.parseColor("#F59E0B")        // Amber Warning
-    private val colWarningBg = Color.parseColor("#451A03")      // Amber Dark Tint
-    private val colTextPrimary = Color.parseColor("#F8FAFC")    // Crisp White
-    private val colTextSecondary = Color.parseColor("#94A3B8")  // Slate Muted
-    private val colTextMuted = Color.parseColor("#64748B")      // Subtle Caption
+    internal val colBgPrimary = Color.parseColor("#0B1120")
+    internal val colSurface = Color.parseColor("#131C31")
+    internal val colSurfaceElevated = Color.parseColor("#1A2642")
+    internal val colBorder = Color.parseColor("#263554")
+    internal val colAccentBlue = Color.parseColor("#2563EB")
+    internal val colAccentCyan = Color.parseColor("#0EA5E9")
+    internal val colSuccess = Color.parseColor("#10B981")
+    internal val colSuccessBg = Color.parseColor("#064E3B")
+    internal val colWarning = Color.parseColor("#F59E0B")
+    internal val colWarningBg = Color.parseColor("#451A03")
+    internal val colTextPrimary = Color.parseColor("#F8FAFC")
+    internal val colTextSecondary = Color.parseColor("#94A3B8")
+    internal val colTextMuted = Color.parseColor("#64748B")
 
     companion object {
         private const val REQUEST_BT = 100
-        private const val REQUEST_PDF = 200
-        private const val APP_WATERMARK = "Generate by: JZ Receipt Printer"
+        internal const val REQUEST_PDF = 200
+        internal const val APP_WATERMARK = "Generate by: JZ Receipt Printer"
         private const val ACTION_USB_PERMISSION = "com.example.helloandroid.USB_PERMISSION"
         private const val REQUEST_USB = 300
         private const val CHANNEL_ID = "printer_connection"
         private const val REQUEST_NOTIFICATION = 400
     }
 
-    // Daftar perangkat yang ditemukan saat scan
     private val discoveredDevices = mutableListOf<BluetoothDevice>()
     private var receiverRegistered = false
 
-    // Helper untuk memperbarui indikator status koneksi secara visual
+    internal fun dp(value: Int): Int {
+        return (value * resources.displayMetrics.density).toInt()
+    }
+
+    internal fun rounded(
+        color: Int,
+        radiusDp: Int,
+        strokeColor: Int = Color.TRANSPARENT,
+        strokeWidthDp: Int = 0
+    ): GradientDrawable {
+        return GradientDrawable().apply {
+            setColor(color)
+            cornerRadius = dp(radiusDp).toFloat()
+            if (strokeWidthDp > 0 && strokeColor != Color.TRANSPARENT) {
+                setStroke(dp(strokeWidthDp), strokeColor)
+            }
+        }
+    }
+
+    internal fun gradientRounded(startColor: Int, endColor: Int, radiusDp: Int): GradientDrawable {
+        return GradientDrawable(
+            GradientDrawable.Orientation.LEFT_RIGHT,
+            intArrayOf(startColor, endColor)
+        ).apply {
+            cornerRadius = dp(radiusDp).toFloat()
+        }
+    }
+
+    internal fun rippleRounded(
+        color: Int,
+        radiusDp: Int,
+        strokeColor: Int = Color.TRANSPARENT,
+        strokeWidthDp: Int = 0
+    ): RippleDrawable {
+        val rippleColor = ColorStateList.valueOf(Color.argb(55, 255, 255, 255))
+        return RippleDrawable(
+            rippleColor,
+            rounded(color, radiusDp, strokeColor, strokeWidthDp),
+            rounded(Color.WHITE, radiusDp)
+        )
+    }
+
+    internal fun rippleGradient(startColor: Int, endColor: Int, radiusDp: Int): RippleDrawable {
+        val rippleColor = ColorStateList.valueOf(Color.argb(65, 255, 255, 255))
+        return RippleDrawable(
+            rippleColor,
+            gradientRounded(startColor, endColor, radiusDp),
+            rounded(Color.WHITE, radiusDp)
+        )
+    }
+
+    internal fun updateStatusText(message: String) {
+        if (::status.isInitialized) {
+            status.text = message
+        }
+    }
+
     private fun updateConnectionVisualState(state: String) {
         if (!::statusDot.isInitialized) return
         when (state) {
@@ -154,48 +206,9 @@ class MainActivity : Activity() {
         }
     }
 
-    private fun dp(value: Int): Int {
-        return (value * resources.displayMetrics.density).toInt()
-    }
-
-    private fun rounded(color: Int, radiusDp: Int, strokeColor: Int = Color.TRANSPARENT, strokeWidthDp: Int = 0): GradientDrawable {
-        return GradientDrawable().apply {
-            setColor(color)
-            cornerRadius = dp(radiusDp).toFloat()
-            if (strokeWidthDp > 0 && strokeColor != Color.TRANSPARENT) {
-                setStroke(dp(strokeWidthDp), strokeColor)
-            }
-        }
-    }
-
-    private fun gradientRounded(startColor: Int, endColor: Int, radiusDp: Int): GradientDrawable {
-        return GradientDrawable(
-            GradientDrawable.Orientation.LEFT_RIGHT,
-            intArrayOf(startColor, endColor)
-        ).apply {
-            cornerRadius = dp(radiusDp).toFloat()
-        }
-    }
-
-    private fun rippleRounded(color: Int, radiusDp: Int, strokeColor: Int = Color.TRANSPARENT, strokeWidthDp: Int = 0): RippleDrawable {
-        val rippleColor = ColorStateList.valueOf(Color.argb(55, 255, 255, 255))
-        return RippleDrawable(
-            rippleColor,
-            rounded(color, radiusDp, strokeColor, strokeWidthDp),
-            rounded(Color.WHITE, radiusDp)
-        )
-    }
-
-    private fun rippleGradient(startColor: Int, endColor: Int, radiusDp: Int): RippleDrawable {
-        val rippleColor = ColorStateList.valueOf(Color.argb(65, 255, 255, 255))
-        return RippleDrawable(
-            rippleColor,
-            gradientRounded(startColor, endColor, radiusDp),
-            rounded(Color.WHITE, radiusDp)
-        )
-    }
-
-    // Penerima hasil Bluetooth Discovery
+    // =========================================================================
+    // BROADCAST RECEIVERS (BLUETOOTH & USB)
+    // =========================================================================
     private val discoveryReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             when (intent.action) {
@@ -226,7 +239,6 @@ class MainActivity : Activity() {
         }
     }
 
-    // PENERIMA IZIN USB
     private val usbPermissionReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             if (intent.action == ACTION_USB_PERMISSION) {
@@ -266,13 +278,10 @@ class MainActivity : Activity() {
         }
     }
 
-    // DETEKSI USB DIPASANG / DILEPAS
     private val usbDeviceReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             when (intent.action) {
-                UsbManager.ACTION_USB_DEVICE_ATTACHED -> {
-                    scanUsbDevices()
-                }
+                UsbManager.ACTION_USB_DEVICE_ATTACHED -> scanUsbDevices()
                 UsbManager.ACTION_USB_DEVICE_DETACHED -> {
                     disconnectUsbPrinter()
                     scanUsbDevices()
@@ -281,7 +290,9 @@ class MainActivity : Activity() {
         }
     }
 
-    // SCAN USB PRINTER
+    // =========================================================================
+    // USB PRINTER LOGIC
+    // =========================================================================
     private fun scanUsbDevices() {
         usbManager = getSystemService(Context.USB_SERVICE) as UsbManager
         val devices = usbManager!!.deviceList.values
@@ -342,7 +353,6 @@ class MainActivity : Activity() {
         }
     }
 
-    // MEMINTA IZIN AKSES USB
     private fun requestUsbPermission(device: UsbDevice) {
         val manager = usbManager ?: return
 
@@ -376,7 +386,6 @@ class MainActivity : Activity() {
         manager.requestPermission(device, pendingIntent)
     }
 
-    // MEMBUKA KONEKSI USB PRINTER
     private fun connectUsbPrinter() {
         val manager = usbManager ?: return
         val device = usbDevice ?: return
@@ -417,7 +426,6 @@ class MainActivity : Activity() {
             deviceInfo.text = "USB: ${device.productName ?: "Printer USB"}"
             status.text = "Terhubung via USB OTG • Siap cetak"
             updateConnectionVisualState("CONNECTED")
-            printButton.isEnabled = true
             updateBluetoothButtons()
 
             showPrinterConnectedNotification(
@@ -432,7 +440,6 @@ class MainActivity : Activity() {
         }
     }
 
-    // KIRIM DATA KE PRINTER USB
     private fun sendUsbData(data: ByteArray): Boolean {
         val connection = usbConnection ?: return false
         val endpoint = usbEndpointOut ?: return false
@@ -454,7 +461,6 @@ class MainActivity : Activity() {
         }
     }
 
-    // MEMUTUS KONEKSI USB
     private fun disconnectUsbPrinter() {
         try {
             if (usbConnection != null) {
@@ -463,7 +469,7 @@ class MainActivity : Activity() {
                 }
                 usbConnection?.close()
             }
-        } catch (e: Exception) {
+        } catch (_: Exception) {
         }
 
         usbConnection = null
@@ -476,11 +482,12 @@ class MainActivity : Activity() {
         status.text = "Koneksi USB dilepas"
         deviceInfo.text = "Belum ada printer terhubung"
         updateConnectionVisualState("DISCONNECTED")
-        printButton.isEnabled = false
         updateBluetoothButtons()
     }
 
-    // NOTIFICATION
+    // =========================================================================
+    // NOTIFICATION HELPER
+    // =========================================================================
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
@@ -531,19 +538,17 @@ class MainActivity : Activity() {
     }
 
     // =========================================================================
-    // ON CREATE (MODERN DARK INDUSTRIAL UI)
+    // ON CREATE (GLOBAL HEADER + CONNECTION CARD + DYNAMIC SUB-PAGE CONTAINER)
     // =========================================================================
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Atur status bar & navigation bar menyatu dengan tema gelap
         window.statusBarColor = colBgPrimary
         window.navigationBarColor = colBgPrimary
 
         createNotificationChannel()
         requestNotificationPermission()
 
-        // DAFTARKAN USB PERMISSION RECEIVER
         val usbPermissionFilter = IntentFilter(ACTION_USB_PERMISSION)
         if (Build.VERSION.SDK_INT >= 33) {
             registerReceiver(usbPermissionReceiver, usbPermissionFilter, Context.RECEIVER_NOT_EXPORTED)
@@ -551,7 +556,6 @@ class MainActivity : Activity() {
             registerReceiver(usbPermissionReceiver, usbPermissionFilter)
         }
 
-        // DAFTARKAN USB DEVICE RECEIVER
         val usbDeviceFilter = IntentFilter().apply {
             addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED)
             addAction(UsbManager.ACTION_USB_DEVICE_DETACHED)
@@ -575,7 +579,7 @@ class MainActivity : Activity() {
         }
 
         // ---------------------------------------------------------------------
-        // 1. TOP APP BAR (ELEVATED HEADER)
+        // 1. LOGO & NAVBAR (TETAP DI SEMUA HALAMAN)
         // ---------------------------------------------------------------------
         val header = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
@@ -584,7 +588,6 @@ class MainActivity : Activity() {
             setBackgroundColor(colBgPrimary)
         }
 
-        // App Icon Badge dengan Gradient
         val logoContainer = FrameLayout(this).apply {
             background = gradientRounded(colAccentBlue, colAccentCyan, 14)
             elevation = dp(4).toFloat()
@@ -599,7 +602,6 @@ class MainActivity : Activity() {
             FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
         )
 
-        // Judul & Subtitle Aplikasi
         val headerTitle = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             gravity = Gravity.CENTER_VERTICAL
@@ -625,7 +627,6 @@ class MainActivity : Activity() {
         headerTitle.addView(appName)
         headerTitle.addView(appSubtitle)
 
-        // Tombol Menu (Overflow)
         val menuButton = TextView(this).apply {
             text = "⋮"
             textSize = 22f
@@ -637,7 +638,6 @@ class MainActivity : Activity() {
             isFocusable = true
         }
 
-        // POPUP MENU MODERN
         lateinit var popupMenu: PopupWindow
         popupMenu = PopupWindow(this).apply {
             val menuLayout = LinearLayout(this@MainActivity).apply {
@@ -727,47 +727,24 @@ class MainActivity : Activity() {
         }
 
         // ---------------------------------------------------------------------
-        // KONTEN UTAMA DALAM SCROLLVIEW
+        // 2. BAGIAN ATAS KONTEN: CONNECTION CARD (TETAP DI SEMUA HALAMAN)
         // ---------------------------------------------------------------------
-        val layout = LinearLayout(this).apply {
+        val topFixedSection = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(dp(18), dp(18), dp(18), dp(24))
+            setPadding(dp(18), dp(16), dp(18), dp(10))
             setBackgroundColor(colBgPrimary)
         }
 
-        fun sectionHeader(titleText: String, badgeText: String? = null): LinearLayout {
-            return LinearLayout(this).apply {
-                orientation = LinearLayout.HORIZONTAL
-                gravity = Gravity.CENTER_VERTICAL
+        topFixedSection.addView(
+            TextView(this).apply {
+                text = "HARDWARE CONNECTION"
+                textSize = 12f
+                letterSpacing = 0.08f
+                typeface = Typeface.DEFAULT_BOLD
+                setTextColor(colTextSecondary)
                 setPadding(dp(2), 0, dp(2), dp(10))
-
-                addView(TextView(this@MainActivity).apply {
-                    text = titleText
-                    textSize = 12f
-                    letterSpacing = 0.08f
-                    typeface = Typeface.DEFAULT_BOLD
-                    setTextColor(colTextSecondary)
-                    layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
-                })
-
-                if (badgeText != null) {
-                    resolutionBadge = TextView(this@MainActivity).apply {
-                        text = badgeText
-                        textSize = 10f
-                        typeface = Typeface.DEFAULT_BOLD
-                        setTextColor(colAccentCyan)
-                        setPadding(dp(8), dp(3), dp(8), dp(3))
-                        background = rounded(colSurfaceElevated, 8, colBorder, 1)
-                    }
-                    addView(resolutionBadge)
-                }
             }
-        }
-
-        // ---------------------------------------------------------------------
-        // 2. KARTU KONEKSI PRINTER (HARDWARE CONNECTION)
-        // ---------------------------------------------------------------------
-        layout.addView(sectionHeader("HARDWARE CONNECTION"))
+        )
 
         val connectionPanel = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
@@ -776,7 +753,6 @@ class MainActivity : Activity() {
             elevation = dp(4).toFloat()
         }
 
-        // Box Status Perangkat & Live Indicator Pill
         connectionInfoBox = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(dp(14), dp(14), dp(14), dp(14))
@@ -796,7 +772,6 @@ class MainActivity : Activity() {
             layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
         }
 
-        // Status Pill Badge (OFFLINE / BUSY / ONLINE)
         statusBadgeBox = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
@@ -840,12 +815,10 @@ class MainActivity : Activity() {
             }
         )
 
-        // Baris Tombol Aksi Bluetooth (Berdampingan / Grid 2 Kolom agar ringkas & modern)
         val btActionRow = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
         }
 
-        // Tombol Scan Device
         searchButton = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER
@@ -875,7 +848,6 @@ class MainActivity : Activity() {
             setOnClickListener { findPrinter() }
         }
 
-        // Tombol Connect Printer
         connectButton = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER
@@ -916,247 +888,283 @@ class MainActivity : Activity() {
 
         connectionPanel.addView(btActionRow)
 
-        layout.addView(
+        topFixedSection.addView(
             connectionPanel,
-            LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply {
-                bottomMargin = dp(20)
-            }
+            LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
         )
 
         // ---------------------------------------------------------------------
-        // 3. KARTU RECEIPT PREVIEW (THERMAL PAPER CANVAS)
+        // 3. AREA DINAMIS DI BAWAH CONNECTION CARD (GRID MENU / SUB-MENU)
         // ---------------------------------------------------------------------
-        layout.addView(sectionHeader("RECEIPT PREVIEW", "384 PX • 1-BIT MONO"))
-
-        // Frame luar gelap sebagai meja kerja (workspace frame)
-        val previewWorkspace = FrameLayout(this).apply {
-            background = rounded(colSurface, 20, colBorder, 1)
-            setPadding(dp(14), dp(14), dp(14), dp(14))
-            elevation = dp(4).toFloat()
+        contentContainer = FrameLayout(this).apply {
+            setBackgroundColor(colBgPrimary)
         }
 
-        // Kertas Thermal Putih di dalam workspace
-        val previewPanel = FrameLayout(this).apply {
-            background = rounded(Color.parseColor("#F8FAFC"), 14, Color.parseColor("#CBD5E1"), 1)
-            minimumHeight = dp(270)
-            setPadding(dp(14), dp(16), dp(14), dp(16))
-        }
-
-        // Placeholder Awal yang Lebih Rapi & Modern
-        previewPlaceholder = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            gravity = Gravity.CENTER
-        }
-
-        val iconCircle = FrameLayout(this).apply {
-            background = rounded(Color.parseColor("#E2E8F0"), 28)
-        }
-        val paperIcon = TextView(this).apply {
-            text = "🧾"
-            textSize = 28f
-            gravity = Gravity.CENTER
-        }
-        iconCircle.addView(
-            paperIcon,
-            FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
-        )
-
-        previewPlaceholder.addView(
-            iconCircle,
-            LinearLayout.LayoutParams(dp(60), dp(60)).apply { bottomMargin = dp(12) }
-        )
-
-        fun placeholderText(value: String, size: Float, color: Int, bold: Boolean = false): TextView {
-            return TextView(this).apply {
-                text = value
-                textSize = size
-                setTextColor(color)
-                gravity = Gravity.CENTER
-                if (bold) typeface = Typeface.DEFAULT_BOLD
-            }
-        }
-
-        previewPlaceholder.addView(
-            placeholderText("Belum Ada Resi Dipilih", 15f, Color.parseColor("#1E293B"), true)
-        )
-
-        previewPlaceholder.addView(
-            placeholderText(
-                "Pilih file PDF resi untuk melihat pratinjau cetak thermal",
-                12f,
-                Color.parseColor("#64748B")
-            ).apply {
-                setPadding(dp(16), dp(4), dp(16), dp(14))
-            }
-        )
-
-        // Simulasi baris struk thermal minimal
-        val lineWidths = listOf(160, 130, 145, 95)
-        for (w in lineWidths) {
-            val line = View(this).apply {
-                background = rounded(Color.parseColor("#CBD5E1"), 4)
-            }
-            previewPlaceholder.addView(
-                line,
-                LinearLayout.LayoutParams(dp(w), dp(6)).apply { topMargin = dp(7) }
-            )
-        }
-
-        previewPanel.addView(
-            previewPlaceholder,
-            FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT, Gravity.CENTER)
-        )
-
-        // Gambar hasil PDF yang sudah diproses
-        pdfPreview = ImageView(this).apply {
-            adjustViewBounds = true
-            scaleType = ImageView.ScaleType.FIT_CENTER
-            visibility = View.GONE
-        }
-
-        previewPanel.addView(
-            pdfPreview,
-            FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT, Gravity.CENTER)
-        )
-
-        previewWorkspace.addView(
-            previewPanel,
-            FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT)
-        )
-
-        layout.addView(
-            previewWorkspace,
-            LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply {
-                bottomMargin = dp(20)
-            }
-        )
-
-        // ---------------------------------------------------------------------
-        // 4. TOMBOL AKSI UTAMA (SELECT PDF & PRINT RECEIPT)
-        // ---------------------------------------------------------------------
-        // Tombol Pilih PDF
-        selectPdfButton = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER
-            background = rippleRounded(colSurfaceElevated, 16, colAccentCyan, 1)
-            isClickable = true
-            isFocusable = true
-            setPadding(dp(16), dp(4), dp(16), dp(4))
-            minimumHeight = dp(56)
-
-            addView(ImageView(this@MainActivity).apply {
-                setImageResource(R.drawable.ic_pdf)
-                setColorFilter(colAccentCyan)
-                layoutParams = LinearLayout.LayoutParams(dp(24), dp(24))
-            })
-            addView(Space(this@MainActivity).apply {
-                layoutParams = LinearLayout.LayoutParams(dp(10), 1)
-            })
-            addView(TextView(this@MainActivity).apply {
-                text = "SELECT RECEIPT PDF"
-                textSize = 14f
-                letterSpacing = 0.04f
-                typeface = Typeface.DEFAULT_BOLD
-                setTextColor(colTextPrimary)
-                gravity = Gravity.CENTER
-                includeFontPadding = false
-            })
-
-            setOnClickListener {
-                val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
-                    addCategory(Intent.CATEGORY_OPENABLE)
-                    type = "application/pdf"
-                }
-                startActivityForResult(intent, REQUEST_PDF)
-            }
-        }
-
-        layout.addView(
-            selectPdfButton,
-            LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(56))
-        )
-
-        // Tombol Cetak Utama (Gradient Emerald Accent)
-        printButton = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER
-            background = rippleGradient(Color.parseColor("#059669"), Color.parseColor("#10B981"), 16)
-            elevation = dp(6).toFloat()
-            isClickable = true
-            isFocusable = true
-            setPadding(dp(16), dp(4), dp(16), dp(4))
-            minimumHeight = dp(60)
-
-            addView(ImageView(this@MainActivity).apply {
-                setImageResource(R.drawable.ic_printer)
-                setColorFilter(Color.WHITE)
-                layoutParams = LinearLayout.LayoutParams(dp(26), dp(26))
-            })
-            addView(Space(this@MainActivity).apply {
-                layoutParams = LinearLayout.LayoutParams(dp(10), 1)
-            })
-            addView(TextView(this@MainActivity).apply {
-                text = "PRINT THERMAL RECEIPT"
-                textSize = 15f
-                letterSpacing = 0.04f
-                typeface = Typeface.DEFAULT_BOLD
-                setTextColor(Color.WHITE)
-                gravity = Gravity.CENTER
-                includeFontPadding = false
-            })
-
-            setOnClickListener { printReceipt() }
-        }
-
-        layout.addView(
-            printButton,
-            LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(60)).apply {
-                topMargin = dp(12)
-                bottomMargin = dp(22)
-            }
-        )
-
-        // ---------------------------------------------------------------------
-        // 5. FOOTER
-        // ---------------------------------------------------------------------
-        val footer = TextView(this).apply {
-            text = "JZ RECEIPT PRINTER  •  ESC/POS THERMAL ENGINE"
-            textSize = 10f
-            letterSpacing = 0.08f
-            gravity = Gravity.CENTER
-            setTextColor(colTextMuted)
-        }
-        layout.addView(footer)
-
-        // SCROLL KONTEN
-        val scrollView = ScrollView(this).apply {
+        val bodyScrollView = ScrollView(this).apply {
             setFillViewport(true)
             setBackgroundColor(colBgPrimary)
             isVerticalScrollBarEnabled = false
-            addView(layout)
+            addView(topFixedSection)
         }
+
+        // Bungkus topFixedSection + contentContainer dalam satu LinearLayout di ScrollView
+        val mainScrollContent = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setBackgroundColor(colBgPrimary)
+        }
+        bodyScrollView.removeView(topFixedSection)
+        mainScrollContent.addView(topFixedSection)
+        mainScrollContent.addView(
+            contentContainer,
+            LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+        )
+        bodyScrollView.addView(mainScrollContent)
 
         headerLine.layoutParams = LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.MATCH_PARENT,
             dp(1)
         )
 
-        // SUSUN ROOT LAYOUT
         rootLayout.addView(header)
         rootLayout.addView(headerLine)
         rootLayout.addView(
-            scrollView,
+            bodyScrollView,
             LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f)
         )
 
         setContentView(rootLayout)
 
-        // CEK PRINTER USB SAAT APLIKASI DIBUKA
+        // Tampilkan halaman utama (Grid 4 Menu)
+        showHomeMenu()
+
+        // Cek printer USB saat aplikasi dibuka
         scanUsbDevices()
     }
 
     // =========================================================================
-    // BLUETOOTH & PERMISSION LOGIC (TETAP UTUH)
+    // HALAMAN UTAMA: GRID 4 TOMBOL MENU BERDAMPINGAN
+    // =========================================================================
+    internal fun showHomeMenu() {
+        activeSubPage = "HOME"
+        contentContainer.removeAllViews()
+
+        val homeLayout = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(18), dp(8), dp(18), dp(24))
+            setBackgroundColor(colBgPrimary)
+        }
+
+        homeLayout.addView(
+            TextView(this).apply {
+                text = "QUICK MENU"
+                textSize = 12f
+                letterSpacing = 0.08f
+                typeface = Typeface.DEFAULT_BOLD
+                setTextColor(colTextSecondary)
+                setPadding(dp(2), 0, dp(2), dp(10))
+            }
+        )
+
+        fun buildMenuTile(
+            title: String,
+            subtitle: String,
+            iconRes: Int?,
+            fallbackEmoji: String,
+            accentColor: Int,
+            isComingSoon: Boolean = false,
+            onClick: () -> Unit
+        ): LinearLayout {
+            return LinearLayout(this).apply {
+                orientation = LinearLayout.VERTICAL
+                gravity = Gravity.START
+                setPadding(dp(14), dp(14), dp(14), dp(14))
+                background = rippleRounded(
+                    colSurface,
+                    18,
+                    if (isComingSoon) colBorder else accentColor,
+                    1
+                )
+                isClickable = true
+                isFocusable = true
+                alpha = if (isComingSoon) 0.65f else 1f
+                elevation = dp(3).toFloat()
+
+                val iconBadge = FrameLayout(this@MainActivity).apply {
+                    background = rounded(colSurfaceElevated, 12, colBorder, 1)
+                }
+
+                if (iconRes != null) {
+                    iconBadge.addView(
+                        ImageView(this@MainActivity).apply {
+                            setImageResource(iconRes)
+                            setColorFilter(accentColor)
+                            setPadding(dp(9), dp(9), dp(9), dp(9))
+                        },
+                        FrameLayout.LayoutParams(
+                            FrameLayout.LayoutParams.MATCH_PARENT,
+                            FrameLayout.LayoutParams.MATCH_PARENT
+                        )
+                    )
+                } else {
+                    iconBadge.addView(
+                        TextView(this@MainActivity).apply {
+                            text = fallbackEmoji
+                            textSize = 20f
+                            gravity = Gravity.CENTER
+                        },
+                        FrameLayout.LayoutParams(
+                            FrameLayout.LayoutParams.MATCH_PARENT,
+                            FrameLayout.LayoutParams.MATCH_PARENT
+                        )
+                    )
+                }
+
+                addView(iconBadge, LinearLayout.LayoutParams(dp(40), dp(40)).apply {
+                    bottomMargin = dp(12)
+                })
+
+                addView(TextView(this@MainActivity).apply {
+                    text = title
+                    textSize = 14f
+                    typeface = Typeface.DEFAULT_BOLD
+                    setTextColor(colTextPrimary)
+                })
+
+                addView(TextView(this@MainActivity).apply {
+                    text = subtitle
+                    textSize = 11f
+                    setTextColor(if (isComingSoon) colWarning else colTextSecondary)
+                    setPadding(0, dp(3), 0, 0)
+                })
+
+                setOnClickListener { onClick() }
+            }
+        }
+
+        // Baris 1: 1. Manual Struk | 2. Print Receipt
+        val row1 = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+        }
+
+        val tileManualStruk = buildMenuTile(
+            title = "Manual Struk",
+            subtitle = "Buat & cetak teks",
+            iconRes = null,
+            fallbackEmoji = "🧾",
+            accentColor = colAccentCyan,
+            isComingSoon = true
+        ) {
+            Toast.makeText(this, "Manual Struk akan segera hadir", Toast.LENGTH_SHORT).show()
+        }
+
+        val tilePrintReceipt = buildMenuTile(
+            title = "Print Receipt",
+            subtitle = "PDF resi 58mm / 80mm",
+            iconRes = R.drawable.ic_pdf,
+            fallbackEmoji = "📄",
+            accentColor = colSuccess,
+            isComingSoon = false
+        ) {
+            openPrintReceiptSubPage()
+        }
+
+        row1.addView(tileManualStruk, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply {
+            rightMargin = dp(6)
+        })
+        row1.addView(tilePrintReceipt, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply {
+            leftMargin = dp(6)
+        })
+
+        // Baris 2: 3. Print Image / Logo | 4. Other (Soon)
+        val row2 = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+        }
+
+        val tilePrintImage = buildMenuTile(
+            title = "Print Image/Logo",
+            subtitle = "Gambar & logo toko",
+            iconRes = R.drawable.ic_printer,
+            fallbackEmoji = "🖼",
+            accentColor = colAccentBlue,
+            isComingSoon = true
+        ) {
+            Toast.makeText(this, "Print Image / Logo akan segera hadir", Toast.LENGTH_SHORT).show()
+        }
+
+        val tileOtherSoon = buildMenuTile(
+            title = "Other (Soon)",
+            subtitle = "Fitur tambahan",
+            iconRes = null,
+            fallbackEmoji = "⚙",
+            accentColor = colWarning,
+            isComingSoon = true
+        ) {
+            Toast.makeText(this, "Fitur lainnya masih dalam pengembangan", Toast.LENGTH_SHORT).show()
+        }
+
+        row2.addView(tilePrintImage, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply {
+            rightMargin = dp(6)
+        })
+        row2.addView(tileOtherSoon, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply {
+            leftMargin = dp(6)
+        })
+
+        homeLayout.addView(row1, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply {
+            bottomMargin = dp(12)
+        })
+        homeLayout.addView(row2, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply {
+            bottomMargin = dp(20)
+        })
+
+        homeLayout.addView(
+            TextView(this).apply {
+                text = "JZ RECEIPT PRINTER  •  ESC/POS THERMAL ENGINE"
+                textSize = 10f
+                letterSpacing = 0.08f
+                gravity = Gravity.CENTER
+                setTextColor(colTextMuted)
+            }
+        )
+
+        contentContainer.addView(
+            homeLayout,
+            FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT)
+        )
+    }
+
+    // =========================================================================
+    // NAVIGASI KE SUB-HALAMAN PRINT RECEIPT (FILE TERPISAH: PrintReceiptView.kt)
+    // =========================================================================
+    private fun openPrintReceiptSubPage() {
+        activeSubPage = "PRINT_RECEIPT"
+        contentContainer.removeAllViews()
+
+        if (printReceiptController == null) {
+            printReceiptController = PrintReceiptView(
+                activity = this,
+                onBackToHome = { showHomeMenu() },
+                onPickPdf = {
+                    val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+                        addCategory(Intent.CATEGORY_OPENABLE)
+                        type = "application/pdf"
+                    }
+                    @Suppress("DEPRECATION")
+                    startActivityForResult(intent, REQUEST_PDF)
+                },
+                onPrintBitmap = { bitmapToPrint ->
+                    printProcessedBitmap(bitmapToPrint)
+                }
+            )
+        }
+
+        contentContainer.addView(
+            printReceiptController!!.buildView(),
+            FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT)
+        )
+    }
+
+    // =========================================================================
+    // BLUETOOTH & PERMISSION LOGIC
     // =========================================================================
     private fun hasBluetoothPermission(): Boolean {
         return if (Build.VERSION.SDK_INT >= 31) {
@@ -1198,7 +1206,7 @@ class MainActivity : Activity() {
         }
     }
 
-    private fun isUsbPrinterConnected(): Boolean {
+    internal fun isUsbPrinterConnected(): Boolean {
         return usbConnection != null && usbDevice != null
     }
 
@@ -1327,7 +1335,6 @@ class MainActivity : Activity() {
                     deviceInfo.text = "BT: ${printer?.name ?: "Bluetooth Printer"}"
                     status.text = "Terhubung via Bluetooth • Siap cetak"
                     updateConnectionVisualState("CONNECTED")
-                    printButton.isEnabled = true
                     showPrinterConnectedNotification(
                         printer?.name ?: "Bluetooth Printer",
                         "Bluetooth"
@@ -1337,23 +1344,15 @@ class MainActivity : Activity() {
                 runOnUiThread {
                     status.text = "Gagal koneksi: ${e.message}"
                     updateConnectionVisualState("DISCONNECTED")
-                    printButton.isEnabled = false
                 }
             }
         }.start()
     }
 
     // =========================================================================
-    // FUNGSI CETAK ESC/POS (TETAP UTUH)
+    // FUNGSI CETAK ESC/POS (DIPANGGIL DARI SUB-HALAMAN)
     // =========================================================================
-    private fun printReceipt() {
-        val bitmap = processedBitmap
-        if (bitmap == null) {
-            status.text = "Pilih PDF resi terlebih dahulu"
-            Toast.makeText(this, "Pilih PDF resi terlebih dahulu", Toast.LENGTH_SHORT).show()
-            return
-        }
-
+    internal fun printProcessedBitmap(bitmap: Bitmap) {
         val printBitmap = addWatermark(bitmap, APP_WATERMARK)
         val useUsb = isUsbPrinterConnected()
         val activeSocket = socket
@@ -1394,7 +1393,7 @@ class MainActivity : Activity() {
 
                 val width = printBitmap.width
                 val height = printBitmap.height
-                val widthBytes = width / 8
+                val widthBytes = (width + 7) / 8
 
                 var y = 0
                 while (y < height) {
@@ -1449,8 +1448,50 @@ class MainActivity : Activity() {
         }.start()
     }
 
+    private fun addWatermark(source: Bitmap, watermark: String): Bitmap {
+        val result = Bitmap.createBitmap(
+            source.width,
+            source.height + 55,
+            Bitmap.Config.ARGB_8888
+        )
+
+        val canvas = Canvas(result)
+        canvas.drawColor(Color.WHITE)
+        canvas.drawBitmap(source, 0f, 0f, null)
+
+        if (watermark.isNotBlank()) {
+            val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = Color.BLACK
+                textSize = 26f
+                typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+                textAlign = Paint.Align.CENTER
+            }
+
+            val maxWidth = source.width - 16f
+            val measuredWidth = paint.measureText(watermark)
+
+            if (measuredWidth > maxWidth) {
+                paint.textSize *= maxWidth / measuredWidth
+            }
+
+            canvas.drawText(
+                watermark,
+                source.width / 2f,
+                source.height + 36f,
+                paint
+            )
+        }
+
+        return result
+    }
+
     @Suppress("DEPRECATION")
     override fun onBackPressed() {
+        if (activeSubPage != "HOME") {
+            showHomeMenu()
+            return
+        }
+
         if (System.currentTimeMillis() - backPressedTime < 2000) {
             finishAndRemoveTask()
         } else {
@@ -1491,197 +1532,9 @@ class MainActivity : Activity() {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == REQUEST_PDF && resultCode == RESULT_OK) {
             val uri = data?.data ?: return
-            renderPdf(uri)
-        }
-    }
-
-    // =========================================================================
-    // RENDER & IMAGE PROCESSING PDF RESI (TETAP UTUH)
-    // =========================================================================
-    private fun renderPdf(uri: Uri) {
-        try {
-            contentResolver.openFileDescriptor(uri, "r")?.use { pfd ->
-                PdfRenderer(pfd).use { renderer ->
-                    if (renderer.pageCount == 0) {
-                        throw Exception("PDF tidak memiliki halaman")
-                    }
-
-                    renderer.openPage(0).use { page ->
-                        val renderWidth = (page.width * 150f / 72f).toInt()
-                        val renderHeight = (page.height * 150f / 72f).toInt()
-
-                        val sourceBitmap = Bitmap.createBitmap(
-                            renderWidth,
-                            renderHeight,
-                            Bitmap.Config.ARGB_8888
-                        )
-
-                        page.render(
-                            sourceBitmap,
-                            null,
-                            null,
-                            PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY
-                        )
-
-                        val result = processReceipt(sourceBitmap)
-                        processedBitmap = result
-
-                        pdfPreview.setImageBitmap(result)
-                        previewPlaceholder.visibility = View.GONE
-                        pdfPreview.visibility = View.VISIBLE
-
-                        if (::resolutionBadge.isInitialized) {
-                            resolutionBadge.text = "${result.width} x ${result.height} PX"
-                        }
-
-                        status.text = "Resi siap dicetak (${result.width} x ${result.height} px)"
-                    }
-                }
-            } ?: throw Exception("Tidak dapat membuka file PDF")
-        } catch (e: Exception) {
-            status.text = "Gagal memproses PDF: ${e.message}"
-        }
-    }
-
-    private fun processReceipt(source: Bitmap): Bitmap {
-        val cropX = 0
-        val cropY = 35
-        val cropWidth = source.width
-        val cropHeight = minOf(450, source.height - cropY)
-
-        require(cropHeight > 0) {
-            "Ukuran PDF terlalu kecil untuk crop"
-        }
-
-        val cropped = Bitmap.createBitmap(source, cropX, cropY, cropWidth, cropHeight)
-
-        val rowCounts = IntArray(cropped.height)
-        val colCounts = IntArray(cropped.width)
-
-        for (y in 0 until cropped.height) {
-            for (x in 0 until cropped.width) {
-                val pixel = cropped.getPixel(x, y)
-                val r = Color.red(pixel)
-                val g = Color.green(pixel)
-                val b = Color.blue(pixel)
-
-                if (r < 250 || g < 250 || b < 250) {
-                    rowCounts[y]++
-                    colCounts[x]++
-                }
+            if (activeSubPage == "PRINT_RECEIPT") {
+                printReceiptController?.handleSelectedPdf(uri)
             }
         }
-
-        var minY = cropped.height
-        var maxY = -1
-        var minX = cropped.width
-        var maxX = -1
-
-        for (y in rowCounts.indices) {
-            if (rowCounts[y] > 2 && rowCounts[y] < cropped.width * 0.80) {
-                minY = minOf(minY, y)
-                maxY = maxOf(maxY, y)
-            }
-        }
-
-        for (x in colCounts.indices) {
-            if (colCounts[x] > 2 && colCounts[x] < cropped.height * 0.80) {
-                minX = minOf(minX, x)
-                maxX = maxOf(maxX, x)
-            }
-        }
-
-        require(maxX >= minX && maxY >= minY) {
-            "Isi resi tidak ditemukan"
-        }
-
-        val trimmed = Bitmap.createBitmap(
-            cropped,
-            minX,
-            minY,
-            maxX - minX + 1,
-            maxY - minY + 1
-        )
-
-        val rotated = rotateBitmap(trimmed, -90f)
-        status.text = "Trim: ${trimmed.width}x${trimmed.height} | Rotasi: ${rotated.width}x${rotated.height}"
-
-        val newHeight = (rotated.height * 384f / rotated.width).toInt().coerceAtLeast(1)
-        val resized = Bitmap.createScaledBitmap(rotated, 384, newHeight, true)
-
-        val binary = Bitmap.createBitmap(384, newHeight, Bitmap.Config.ARGB_8888)
-        for (y in 0 until newHeight) {
-            for (x in 0 until 384) {
-                val pixel = resized.getPixel(x, y)
-                val r = Color.red(pixel)
-                val g = Color.green(pixel)
-                val b = Color.blue(pixel)
-                val gray = (0.299 * r + 0.587 * g + 0.114 * b).toInt()
-                val value = if (gray < 255 * 0.65) 0 else 255
-                binary.setPixel(x, y, Color.rgb(value, value, value))
-            }
-        }
-
-        val finalRotation = rotateBitmap(binary, 180f)
-
-        val result = Bitmap.createBitmap(384, finalRotation.height, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(result)
-        canvas.drawColor(Color.WHITE)
-
-        val paint = Paint()
-        canvas.drawBitmap(finalRotation, 0f, 0f, paint)
-
-        val borderPaint = Paint().apply {
-            color = Color.BLACK
-        }
-
-        canvas.drawRect(0f, 0f, 2f, result.height.toFloat(), borderPaint)
-        canvas.drawRect(382f, 0f, 384f, result.height.toFloat(), borderPaint)
-
-        return result
-    }
-
-    private fun rotateBitmap(source: Bitmap, degrees: Float): Bitmap {
-        val matrix = android.graphics.Matrix().apply {
-            postRotate(degrees)
-        }
-        return Bitmap.createBitmap(source, 0, 0, source.width, source.height, matrix, true)
-    }
-
-    private fun addWatermark(source: Bitmap, watermark: String): Bitmap {
-        val result = Bitmap.createBitmap(
-            source.width,
-            source.height + 55,
-            Bitmap.Config.ARGB_8888
-        )
-
-        val canvas = Canvas(result)
-        canvas.drawColor(Color.WHITE)
-        canvas.drawBitmap(source, 0f, 0f, null)
-
-        if (watermark.isNotBlank()) {
-            val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-                color = Color.BLACK
-                textSize = 26f
-                typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
-                textAlign = Paint.Align.CENTER
-            }
-
-            val maxWidth = source.width - 16f
-            val measuredWidth = paint.measureText(watermark)
-
-            if (measuredWidth > maxWidth) {
-                paint.textSize *= maxWidth / measuredWidth
-            }
-
-            canvas.drawText(
-                watermark,
-                source.width / 2f,
-                source.height + 36f,
-                paint
-            )
-        }
-
-        return result
     }
 }
