@@ -79,7 +79,7 @@ class MainActivity : Activity() {
     private lateinit var searchButton: LinearLayout
 
     // CONTAINER SUB-HALAMAN DINAMIS
-    private lateinit var contentContainer: LinearLayout
+    private lateinit var contentContainer: FrameLayout
     private var activeSubPage: String = "HOME" // "HOME", "PRINT_RECEIPT"
     private var printReceiptController: PrintReceiptView? = null
 
@@ -896,16 +896,8 @@ class MainActivity : Activity() {
         // ---------------------------------------------------------------------
         // 3. AREA DINAMIS DI BAWAH CONNECTION CARD (GRID MENU / SUB-MENU)
         // ---------------------------------------------------------------------
-        contentContainer = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
+        contentContainer = FrameLayout(this).apply {
             setBackgroundColor(colBgPrimary)
-        }
-
-        val bodyScrollView = ScrollView(this).apply {
-            setFillViewport(true)
-            setBackgroundColor(colBgPrimary)
-            isVerticalScrollBarEnabled = false
-            addView(topFixedSection)
         }
 
         // Bungkus topFixedSection + contentContainer dalam satu LinearLayout di ScrollView
@@ -913,13 +905,27 @@ class MainActivity : Activity() {
             orientation = LinearLayout.VERTICAL
             setBackgroundColor(colBgPrimary)
         }
-        bodyScrollView.removeView(topFixedSection)
-        mainScrollContent.addView(topFixedSection)
+        mainScrollContent.addView(
+            topFixedSection,
+            LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+        )
         mainScrollContent.addView(
             contentContainer,
             LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
         )
-        bodyScrollView.addView(mainScrollContent)
+
+        val bodyScrollView = ScrollView(this).apply {
+            setFillViewport(true)
+            setBackgroundColor(colBgPrimary)
+            isVerticalScrollBarEnabled = false
+            addView(
+                mainScrollContent,
+                FrameLayout.LayoutParams(
+                    FrameLayout.LayoutParams.MATCH_PARENT,
+                    FrameLayout.LayoutParams.WRAP_CONTENT
+                )
+            )
+        }
 
         headerLine.layoutParams = LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.MATCH_PARENT,
@@ -1129,7 +1135,7 @@ class MainActivity : Activity() {
 
         contentContainer.addView(
             homeLayout,
-            LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+            FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT)
         )
     }
 
@@ -1160,7 +1166,7 @@ class MainActivity : Activity() {
 
         contentContainer.addView(
             printReceiptController!!.buildView(),
-            LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+            FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT)
         )
     }
 
