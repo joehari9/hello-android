@@ -1265,8 +1265,7 @@ class MainActivity : Activity() {
     private fun showDevicePicker() {
         val devices = discoveredDevices.toList()
         val deviceNames = devices.map { device ->
-            "${device.name ?: "Unknown"}
-${device.address}"
+            "${device.name ?: "Unknown"}\n${device.address}"
         }.toTypedArray()
 
         AlertDialog.Builder(this)
