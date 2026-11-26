@@ -79,7 +79,7 @@ class MainActivity : Activity() {
     private lateinit var searchButton: LinearLayout
 
     // CONTAINER SUB-HALAMAN DINAMIS
-    private lateinit var contentContainer: FrameLayout
+    private lateinit var contentContainer: LinearLayout
     private var activeSubPage: String = "HOME" // "HOME", "PRINT_RECEIPT"
     private var printReceiptController: PrintReceiptView? = null
 
@@ -896,7 +896,8 @@ class MainActivity : Activity() {
         // ---------------------------------------------------------------------
         // 3. AREA DINAMIS DI BAWAH CONNECTION CARD (GRID MENU / SUB-MENU)
         // ---------------------------------------------------------------------
-        contentContainer = FrameLayout(this).apply {
+        contentContainer = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
             setBackgroundColor(colBgPrimary)
         }
 
@@ -1128,7 +1129,7 @@ class MainActivity : Activity() {
 
         contentContainer.addView(
             homeLayout,
-            FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT)
+            LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
         )
     }
 
@@ -1159,7 +1160,7 @@ class MainActivity : Activity() {
 
         contentContainer.addView(
             printReceiptController!!.buildView(),
-            FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT)
+            LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
         )
     }
 
