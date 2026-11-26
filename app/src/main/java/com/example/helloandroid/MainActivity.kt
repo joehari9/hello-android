@@ -38,7 +38,6 @@ import android.view.View
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
-import android.widget.PopupWindow
 import android.widget.ScrollView
 import android.widget.Space
 import android.widget.TextView
@@ -627,100 +626,8 @@ class MainActivity : Activity() {
         headerTitle.addView(appName)
         headerTitle.addView(appSubtitle)
 
-        val menuButton = TextView(this).apply {
-            text = "⋮"
-            textSize = 22f
-            gravity = Gravity.CENTER
-            typeface = Typeface.DEFAULT_BOLD
-            setTextColor(colTextPrimary)
-            background = rippleRounded(colSurface, 12, colBorder, 1)
-            isClickable = true
-            isFocusable = true
-        }
-
-        lateinit var popupMenu: PopupWindow
-        popupMenu = PopupWindow(this).apply {
-            val menuLayout = LinearLayout(this@MainActivity).apply {
-                orientation = LinearLayout.VERTICAL
-                setPadding(dp(8), dp(8), dp(8), dp(8))
-                background = rounded(colSurfaceElevated, 16, colBorder, 1)
-            }
-
-            val menuItems = listOf(
-                "ⓘ   About App",
-                "🖨   Printer Info",
-                "❔   User Guide",
-                "⌘   GitHub Repo"
-            )
-
-            menuItems.forEachIndexed { index, item ->
-                val menuItem = TextView(this@MainActivity).apply {
-                    text = item
-                    textSize = 14f
-                    setTextColor(colTextPrimary)
-                    gravity = Gravity.CENTER_VERTICAL
-                    setPadding(dp(14), dp(10), dp(18), dp(10))
-                    isClickable = true
-                    isFocusable = true
-                    background = rippleRounded(Color.TRANSPARENT, 10)
-                }
-
-                menuItem.setOnClickListener {
-                    popupMenu.dismiss()
-                    when (index) {
-                        0 -> AboutDialog.show(this@MainActivity)
-                        1 -> {
-                            val usbActive = isUsbPrinterConnected()
-                            val bluetoothActive = socket?.isConnected == true
-
-                            val printerName = when {
-                                usbActive -> usbDevice?.productName ?: "Printer USB"
-                                bluetoothActive -> printer?.name ?: "Bluetooth Printer"
-                                else -> "No Printer Connected"
-                            }
-
-                            val connectionType = when {
-                                usbActive -> "USB"
-                                bluetoothActive -> "Bluetooth"
-                                else -> "None"
-                            }
-
-                            val connected = usbActive || bluetoothActive
-                            PrinterDialog.show(this@MainActivity, printerName, connectionType, connected)
-                        }
-                        2 -> HelpDialog.show(this@MainActivity)
-                        3 -> {
-                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/"))
-                            startActivity(intent)
-                        }
-                    }
-                }
-
-                menuLayout.addView(
-                    menuItem,
-                    LinearLayout.LayoutParams(dp(184), dp(44))
-                )
-            }
-
-            contentView = menuLayout
-            width = dp(200)
-            height = LinearLayout.LayoutParams.WRAP_CONTENT
-            isFocusable = true
-            elevation = dp(12).toFloat()
-            setBackgroundDrawable(rounded(colSurfaceElevated, 16, colBorder, 1))
-        }
-
-        menuButton.setOnClickListener {
-            if (popupMenu.isShowing) {
-                popupMenu.dismiss()
-            } else {
-                popupMenu.showAsDropDown(menuButton, 0, dp(6), Gravity.END)
-            }
-        }
-
         header.addView(logoContainer, LinearLayout.LayoutParams(dp(44), dp(44)))
         header.addView(headerTitle, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
-        header.addView(menuButton, LinearLayout.LayoutParams(dp(42), dp(42)))
 
         val headerLine = View(this).apply {
             setBackgroundColor(colBorder)
@@ -932,11 +839,131 @@ class MainActivity : Activity() {
             dp(1)
         )
 
+        // ---------------------------------------------------------------------
+        // 4. FIXED BOTTOM NAVIGATION BAR (ABOUT / PRINTER / GUIDE / GITHUB)
+        // ---------------------------------------------------------------------
+        val bottomDivider = View(this).apply {
+            setBackgroundColor(colBorder)
+        }
+
+        val bottomNavBar = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(dp(8), dp(6), dp(8), dp(8))
+            setBackgroundColor(colSurface)
+            elevation = dp(8).toFloat()
+        }
+
+        val bottomTabs = mutableListOf<Pair<LinearLayout, TextView>>()
+        var selectedBottomIndex = -1
+
+        fun refreshBottomNavSelection() {
+            bottomTabs.forEachIndexed { idx, (tabContainer, tabLabel) ->
+                val isSelected = (idx == selectedBottomIndex)
+                if (isSelected) {
+                    tabContainer.background = rounded(colSurfaceElevated, 12, colAccentCyan, 1)
+                    tabLabel.setTextColor(colAccentCyan)
+                } else {
+                    tabContainer.background = rippleRounded(Color.TRANSPARENT, 12)
+                    tabLabel.setTextColor(colTextSecondary)
+                }
+            }
+        }
+
+        val navDefinitions = listOf(
+            Triple("ⓘ", "About", 0),
+            Triple("🖨", "Printer", 1),
+            Triple("❔", "Guide", 2),
+            Triple("⌘", "GitHub", 3)
+        )
+
+        navDefinitions.forEach { (glyph, labelText, index) ->
+            val tabItem = LinearLayout(this@MainActivity).apply {
+                orientation = LinearLayout.VERTICAL
+                gravity = Gravity.CENTER
+                setPadding(dp(4), dp(6), dp(4), dp(6))
+                background = rippleRounded(Color.TRANSPARENT, 12)
+                isClickable = true
+                isFocusable = true
+            }
+
+            val iconView = TextView(this@MainActivity).apply {
+                text = glyph
+                textSize = 15f
+                gravity = Gravity.CENTER
+                setTextColor(colTextPrimary)
+                includeFontPadding = false
+            }
+
+            val titleView = TextView(this@MainActivity).apply {
+                text = labelText
+                textSize = 10.5f
+                typeface = Typeface.DEFAULT_BOLD
+                gravity = Gravity.CENTER
+                setTextColor(colTextSecondary)
+                setPadding(0, dp(2), 0, 0)
+                includeFontPadding = false
+            }
+
+            tabItem.addView(iconView)
+            tabItem.addView(titleView)
+
+            tabItem.setOnClickListener {
+                selectedBottomIndex = index
+                refreshBottomNavSelection()
+
+                when (index) {
+                    0 -> AboutDialog.show(this@MainActivity)
+                    1 -> {
+                        val usbActive = isUsbPrinterConnected()
+                        val bluetoothActive = socket?.isConnected == true
+
+                        val printerName = when {
+                            usbActive -> usbDevice?.productName ?: "Printer USB"
+                            bluetoothActive -> printer?.name ?: "Bluetooth Printer"
+                            else -> "No Printer Connected"
+                        }
+
+                        val connectionType = when {
+                            usbActive -> "USB"
+                            bluetoothActive -> "Bluetooth"
+                            else -> "None"
+                        }
+
+                        val connected = usbActive || bluetoothActive
+                        PrinterDialog.show(this@MainActivity, printerName, connectionType, connected)
+                    }
+                    2 -> HelpDialog.show(this@MainActivity)
+                    3 -> {
+                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/"))
+                        startActivity(intent)
+                    }
+                }
+            }
+
+            bottomTabs.add(tabItem to titleView)
+            bottomNavBar.addView(
+                tabItem,
+                LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply {
+                    leftMargin = dp(2)
+                    rightMargin = dp(2)
+                }
+            )
+        }
+
         rootLayout.addView(header)
         rootLayout.addView(headerLine)
         rootLayout.addView(
             bodyScrollView,
             LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f)
+        )
+        rootLayout.addView(
+            bottomDivider,
+            LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(1))
+        )
+        rootLayout.addView(
+            bottomNavBar,
+            LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
         )
 
         setContentView(rootLayout)
