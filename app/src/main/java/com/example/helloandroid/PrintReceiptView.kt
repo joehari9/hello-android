@@ -542,13 +542,12 @@ class PrintReceiptView(
         return addSideBorders(finalRotation, targetWidth)
     }
 
-    // Logika khusus 80mm: area crop lebih lebar dan langsung ke lebar 576 px
+    // Logika 80mm: struktur sama seperti 58mm (crop -> trim -> rotasi -90 -> resize ke lebar 576px -> mono -> rotasi 180 -> border)
     private fun process80mm(source: Bitmap, targetWidth: Int): Bitmap {
         val cropX = 0
-        val cropY = 20
+        val cropY = 35
         val cropWidth = source.width
-        // Ambil area lebih tinggi dibanding 58mm agar bagian resi yang melebar tidak terpotong sempit
-        val cropHeight = minOf((source.height * 0.65f).toInt(), source.height - cropY)
+        val cropHeight = minOf(450, source.height - cropY)
 
         require(cropHeight > 0) {
             "Ukuran PDF terlalu kecil untuk crop 80mm"
@@ -558,21 +557,27 @@ class PrintReceiptView(
         val trimmed = trimWhitespace(cropped)
         if (trimmed !== cropped) cropped.recycle()
 
+        val rotated = rotateBitmap(trimmed, -90f)
+        if (rotated !== trimmed) trimmed.recycle()
+
         activity.updateStatusText(
-            "80mm Crop & Trim: ${trimmed.width}x${trimmed.height}"
+            "80mm Trim: ${trimmed.width}x${trimmed.height} | Rotasi: ${rotated.width}x${rotated.height}"
         )
 
-        val newHeight = (trimmed.height * targetWidth.toFloat() / trimmed.width)
+        val newHeight = (rotated.height * targetWidth.toFloat() / rotated.width)
             .toInt()
             .coerceAtLeast(1)
 
-        val resized = Bitmap.createScaledBitmap(trimmed, targetWidth, newHeight, true)
-        if (resized !== trimmed) trimmed.recycle()
+        val resized = Bitmap.createScaledBitmap(rotated, targetWidth, newHeight, true)
+        if (resized !== rotated) rotated.recycle()
 
         val binary = toMonochromeBitmap(resized, threshold = 255 * 0.65)
         if (binary !== resized) resized.recycle()
 
-        return addSideBorders(binary, targetWidth)
+        val finalRotation = rotateBitmap(binary, 180f)
+        if (finalRotation !== binary) binary.recycle()
+
+        return addSideBorders(finalRotation, targetWidth)
     }
 
     private fun trimWhitespace(cropped: Bitmap): Bitmap {
