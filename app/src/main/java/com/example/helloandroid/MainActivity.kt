@@ -620,7 +620,7 @@ class MainActivity : Activity() {
         }
 
         val appSubtitle = TextView(this).apply {
-            text = "THERMAL PRINT STUDIO  •  58MM"
+            text = "THERMAL PRINT STUDIO"
             textSize = 10f
             letterSpacing = 0.08f
             typeface = Typeface.DEFAULT_BOLD
@@ -1159,16 +1159,6 @@ class MainActivity : Activity() {
         homeLayout.addView(row2, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply {
             bottomMargin = dp(20)
         })
-
-        homeLayout.addView(
-            TextView(this).apply {
-                text = "JZ RECEIPT PRINTER  •  ESC/POS THERMAL ENGINE"
-                textSize = 10f
-                letterSpacing = 0.08f
-                gravity = Gravity.CENTER
-                setTextColor(colTextMuted)
-            }
-        )
 
         contentContainer.addView(
             homeLayout,
