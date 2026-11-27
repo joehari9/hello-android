@@ -329,7 +329,7 @@ class ManualReceiptView(
 
         var y = verticalPadding - fm.ascent
         for (rl in structured) {
-            val p = if (rl.bold) boldPaint else regularPaint
+            val p = Paint(if (rl.bold) boldPaint else regularPaint)
             when {
                 rl.right.isNotEmpty() -> {
                     p.textAlign = Paint.Align.LEFT
@@ -344,8 +344,13 @@ class ManualReceiptView(
                     canvas.drawText(rl.right.trim(), rightEdge, y, p)
                 }
                 rl.align == Paint.Align.CENTER -> {
+                    val centeredText = rl.left.trim()
+                    val mw = p.measureText(centeredText)
+                    if (mw > usableWidth) {
+                        p.textSize = p.textSize * (usableWidth.toFloat() / mw)
+                    }
                     p.textAlign = Paint.Align.CENTER
-                    canvas.drawText(rl.left.trim(), centerX, y, p)
+                    canvas.drawText(centeredText, centerX, y, p)
                 }
                 else -> {
                     p.textAlign = Paint.Align.LEFT
@@ -357,6 +362,7 @@ class ManualReceiptView(
 
         return bitmap
     }
+
 
     private fun styledInput(hint: String, inputType: Int): EditText {
         return EditText(activity).apply {
@@ -589,7 +595,7 @@ class ManualReceiptView(
             setPadding(0, 0, 0, activity.dp(8))
         })
 
-        livePreviewText = object : TextView(activity) {
+          livePreviewText = object : TextView(activity) {
             override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
                 super.onSizeChanged(w, h, oldw, oldh)
                 if (w > 0) {
@@ -608,10 +614,13 @@ class ManualReceiptView(
         }.apply {
             textSize = 10f
             typeface = Typeface.MONOSPACE
+            gravity = Gravity.CENTER_HORIZONTAL
+            textAlignment = View.TEXT_ALIGNMENT_CENTER
             setTextColor(Color.BLACK)
             setBackgroundColor(Color.WHITE)
             setPadding(activity.dp(10), activity.dp(10), activity.dp(10), activity.dp(10))
         }
+
 
         val actionRow = LinearLayout(activity).apply {
             orientation = LinearLayout.HORIZONTAL
@@ -663,16 +672,24 @@ class ManualReceiptView(
             leftMargin = activity.dp(6)
         })
 
-        previewCard.addView(
+          previewCard.addView(
             FrameLayout(activity).apply {
                 background = activity.rounded(Color.WHITE, 10, activity.colBorder, 1)
                 clipToOutline = true
-                addView(livePreviewText, FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT))
+                addView(
+                    livePreviewText,
+                    FrameLayout.LayoutParams(
+                        FrameLayout.LayoutParams.WRAP_CONTENT,
+                        FrameLayout.LayoutParams.WRAP_CONTENT,
+                        Gravity.CENTER_HORIZONTAL
+                    )
+                )
             },
             LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply {
                 bottomMargin = activity.dp(12)
             }
         )
+
         previewCard.addView(actionRow)
 
         container.addView(previewCard)
