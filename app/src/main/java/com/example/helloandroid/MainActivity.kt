@@ -30,7 +30,6 @@ import android.hardware.usb.UsbDeviceConnection
 import android.hardware.usb.UsbEndpoint
 import android.hardware.usb.UsbInterface
 import android.hardware.usb.UsbManager
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.view.Gravity
@@ -616,7 +615,7 @@ class MainActivity : Activity() {
         }
 
         val appSubtitle = TextView(this).apply {
-            text = "THERMAL PRINT STUDIO  •  58MM"
+            text = "THERMAL PRINT STUDIO"
             textSize = 10f
             letterSpacing = 0.08f
             typeface = Typeface.DEFAULT_BOLD
@@ -855,7 +854,7 @@ class MainActivity : Activity() {
         }
 
         val bottomTabs = mutableListOf<Pair<LinearLayout, TextView>>()
-        var selectedBottomIndex = -1
+        var selectedBottomIndex = 0
 
         fun refreshBottomNavSelection() {
             bottomTabs.forEachIndexed { idx, (tabContainer, tabLabel) ->
@@ -871,10 +870,10 @@ class MainActivity : Activity() {
         }
 
         val navDefinitions = listOf(
-            Triple("ⓘ", "About", 0),
-            Triple("🖨", "Printer", 1),
-            Triple("❔", "Guide", 2),
-            Triple("⌘", "GitHub", 3)
+            Triple("⌂", "Home", 0),
+            Triple("ⓘ", "About", 1),
+            Triple("🖨", "Printer", 2),
+            Triple("❔", "Guide", 3)
         )
 
         navDefinitions.forEach { (glyph, labelText, index) ->
@@ -913,8 +912,9 @@ class MainActivity : Activity() {
                 refreshBottomNavSelection()
 
                 when (index) {
-                    0 -> AboutDialog.show(this@MainActivity)
-                    1 -> {
+                    0 -> showHomeMenu()
+                    1 -> AboutDialog.show(this@MainActivity)
+                    2 -> {
                         val usbActive = isUsbPrinterConnected()
                         val bluetoothActive = socket?.isConnected == true
 
@@ -933,11 +933,7 @@ class MainActivity : Activity() {
                         val connected = usbActive || bluetoothActive
                         PrinterDialog.show(this@MainActivity, printerName, connectionType, connected)
                     }
-                    2 -> HelpDialog.show(this@MainActivity)
-                    3 -> {
-                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/"))
-                        startActivity(intent)
-                    }
+                    3 -> HelpDialog.show(this@MainActivity)
                 }
             }
 
@@ -950,6 +946,8 @@ class MainActivity : Activity() {
                 }
             )
         }
+
+        refreshBottomNavSelection()
 
         rootLayout.addView(header)
         rootLayout.addView(headerLine)
@@ -1149,16 +1147,6 @@ class MainActivity : Activity() {
         homeLayout.addView(row2, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply {
             bottomMargin = dp(20)
         })
-
-        homeLayout.addView(
-            TextView(this).apply {
-                text = "JZ RECEIPT PRINTER  •  ESC/POS THERMAL ENGINE"
-                textSize = 10f
-                letterSpacing = 0.08f
-                gravity = Gravity.CENTER
-                setTextColor(colTextMuted)
-            }
-        )
 
         contentContainer.addView(
             homeLayout,
