@@ -672,23 +672,22 @@ class ManualReceiptView(
             leftMargin = activity.dp(6)
         })
 
-          previewCard.addView(
-            FrameLayout(activity).apply {
-                background = activity.rounded(Color.WHITE, 10, activity.colBorder, 1)
-                clipToOutline = true
-                addView(
-                    livePreviewText,
-                    FrameLayout.LayoutParams(
-                        FrameLayout.LayoutParams.WRAP_CONTENT,
-                        FrameLayout.LayoutParams.WRAP_CONTENT,
-                        Gravity.CENTER_HORIZONTAL
-                    )
-                )
-            },
-            LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply {
-                bottomMargin = activity.dp(12)
-            }
+ previewCard.addView(
+    FrameLayout(activity).apply {
+        background = activity.rounded(Color.WHITE, 10, activity.colBorder, 1)
+        clipToOutline = true
+        addView(
+            livePreviewText,
+            FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.WRAP_CONTENT
+            )
         )
+    },
+    LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply {
+        bottomMargin = activity.dp(12)
+    }
+)
 
         previewCard.addView(actionRow)
 
