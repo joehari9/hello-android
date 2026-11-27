@@ -78,8 +78,10 @@ class MainActivity : Activity() {
 
     // CONTAINER SUB-HALAMAN DINAMIS
     private lateinit var contentContainer: FrameLayout
-    private var activeSubPage: String = "HOME" // "HOME", "PRINT_RECEIPT"
+    private var activeSubPage: String = "HOME" // "HOME", "PRINT_RECEIPT", "MANUAL_RECEIPT"
     private var printReceiptController: PrintReceiptView? = null
+    private var manualReceiptController: ManualReceiptView? = null
+    internal var contentContainerWidth: Int = 0
 
     private var backPressedTime = 0L
 
@@ -615,7 +617,7 @@ class MainActivity : Activity() {
         }
 
         val appSubtitle = TextView(this).apply {
-            text = "THERMAL PRINT STUDIO"
+            text = "THERMAL PRINT STUDIO  •  58MM"
             textSize = 10f
             letterSpacing = 0.08f
             typeface = Typeface.DEFAULT_BOLD
@@ -802,7 +804,14 @@ class MainActivity : Activity() {
         // ---------------------------------------------------------------------
         // 3. AREA DINAMIS DI BAWAH CONNECTION CARD (GRID MENU / SUB-MENU)
         // ---------------------------------------------------------------------
-        contentContainer = FrameLayout(this).apply {
+        contentContainer = object : FrameLayout(this) {
+            override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+                super.onSizeChanged(w, h, oldw, oldh)
+                if (w > 0) {
+                    contentContainerWidth = w
+                }
+            }
+        }.apply {
             setBackgroundColor(colBgPrimary)
         }
 
@@ -1084,9 +1093,9 @@ class MainActivity : Activity() {
             iconRes = null,
             fallbackEmoji = "🧾",
             accentColor = colAccentCyan,
-            isComingSoon = true
+            isComingSoon = false
         ) {
-            Toast.makeText(this, "Manual Struk akan segera hadir", Toast.LENGTH_SHORT).show()
+            openManualReceiptSubPage()
         }
 
         val tilePrintReceipt = buildMenuTile(
@@ -1148,8 +1157,41 @@ class MainActivity : Activity() {
             bottomMargin = dp(20)
         })
 
+        homeLayout.addView(
+            TextView(this).apply {
+                text = "JZ RECEIPT PRINTER  •  ESC/POS THERMAL ENGINE"
+                textSize = 10f
+                letterSpacing = 0.08f
+                gravity = Gravity.CENTER
+                setTextColor(colTextMuted)
+            }
+        )
+
         contentContainer.addView(
             homeLayout,
+            FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT)
+        )
+    }
+
+    // =========================================================================
+    // NAVIGASI KE SUB-HALAMAN MANUAL STRUK (FILE TERPISAH: ManualReceiptView.kt)
+    // =========================================================================
+    private fun openManualReceiptSubPage() {
+        activeSubPage = "MANUAL_RECEIPT"
+        contentContainer.removeAllViews()
+
+        if (manualReceiptController == null) {
+            manualReceiptController = ManualReceiptView(
+                activity = this,
+                onBackToHome = { showHomeMenu() },
+                onPrintBitmap = { bitmapToPrint ->
+                    printProcessedBitmap(bitmapToPrint)
+                }
+            )
+        }
+
+        contentContainer.addView(
+            manualReceiptController!!.buildView(),
             FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT)
         )
     }
