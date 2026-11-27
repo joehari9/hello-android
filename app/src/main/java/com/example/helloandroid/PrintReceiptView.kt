@@ -548,7 +548,7 @@ class PrintReceiptView(
         val cropX = 0
         val cropY = 35
         val cropWidth = source.width
-        val desiredHeight = maxOf(450, (source.height * 0.50f).toInt())
+        val desiredHeight = maxOf(450, (source.height * 0.62f).toInt())
         val cropHeight = minOf(desiredHeight, source.height - cropY)
 
         require(cropHeight > 0) {
