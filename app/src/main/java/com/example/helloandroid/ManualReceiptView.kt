@@ -56,7 +56,7 @@ class ManualReceiptView(
     }
 
     private fun formatMoney(amount: Long): String {
-        return currencyFormat.format(amount).replace("Rp", "Rp ").replace("\s+".toRegex(), " ")
+        return currencyFormat.format(amount).replace("Rp", "Rp ").replace("\\s+".toRegex(), " ")
     }
 
     // Menyesuaikan lebar cetak otomatis berdasarkan target/perangkat aktif tanpa pilihan manual 58/80mm
