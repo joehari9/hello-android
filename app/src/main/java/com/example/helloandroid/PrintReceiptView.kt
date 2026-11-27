@@ -542,12 +542,14 @@ class PrintReceiptView(
         return addSideBorders(finalRotation, targetWidth)
     }
 
-    // Logika 80mm: struktur sama seperti 58mm (crop -> trim -> rotasi -90 -> resize ke lebar 576px -> mono -> rotasi 180 -> border)
-    private fun process80mm(source: Bitmap, targetWidth: Int): Bitmap {
+    // Logika 80mm: mengikuti struktur 58mm (crop -> trim -> rotasi -90 -> resize ke lebar targetWidth [576px] -> mono -> rotasi 180 -> border)
+    // dengan tinggi area crop sumber yang diperluas agar bagian resi yang lebih lebar/panjang ikut terambil sebelum dirotasi
+    private fun process80mm(source: Bitmap, targetWidth: Int = 576): Bitmap {
         val cropX = 0
         val cropY = 35
         val cropWidth = source.width
-        val cropHeight = minOf(450, source.height - cropY)
+        val desiredHeight = maxOf(450, (source.height * 0.62f).toInt())
+        val cropHeight = minOf(desiredHeight, source.height - cropY)
 
         require(cropHeight > 0) {
             "Ukuran PDF terlalu kecil untuk crop 80mm"
