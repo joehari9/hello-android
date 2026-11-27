@@ -35,6 +35,25 @@ class ManualReceiptView(
 
     private val items = mutableListOf<ReceiptItem>()
     private var nextItemId = 1
+    private val receiptPrefs by lazy {
+        activity.getSharedPreferences("manual_receipt_header_footer", android.content.Context.MODE_PRIVATE)
+    }
+
+    private fun loadHeaderFooterPrefs() {
+        storeNameInput.setText(receiptPrefs.getString("store_name", "").orEmpty())
+        storeAddressInput.setText(receiptPrefs.getString("store_address", "").orEmpty())
+        storePhoneInput.setText(receiptPrefs.getString("store_phone", "").orEmpty())
+        footerNoteInput.setText(receiptPrefs.getString("footer_note", "").orEmpty())
+    }
+
+    private fun saveHeaderFooterPrefs() {
+        receiptPrefs.edit()
+            .putString("store_name", storeNameInput.text.toString().trim())
+            .putString("store_address", storeAddressInput.text.toString().trim())
+            .putString("store_phone", storePhoneInput.text.toString().trim())
+            .putString("footer_note", footerNoteInput.text.toString().trim())
+            .apply()
+    }
 
     private lateinit var storeNameInput: EditText
     private lateinit var storeAddressInput: EditText
@@ -687,6 +706,7 @@ private fun buildPreviewString(): CharSequence {
                     Toast.makeText(activity, "Tambahkan minimal 1 item dulu", Toast.LENGTH_SHORT).show()
                     return@setOnClickListener
                 }
+                saveHeaderFooterPrefs()
                 val bmp = renderReceiptBitmap()
                 onPrintBitmap(bmp)
             }
@@ -719,7 +739,7 @@ private fun buildPreviewString(): CharSequence {
         previewCard.addView(actionRow)
 
         container.addView(previewCard)
-
+        saveHeaderFooterPrefs()
         refreshAll()
         return container
     }
