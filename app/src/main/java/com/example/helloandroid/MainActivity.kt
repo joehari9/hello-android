@@ -1270,6 +1270,16 @@ class MainActivity : Activity() {
         }
     }
 
+    internal fun getConnectedPrinterNameForAutoWidth(): String {
+        if (isUsbPrinterConnected()) {
+            return usbDevice?.productName ?: ""
+        }
+        if (socket?.isConnected == true) {
+            return printer?.name ?: ""
+        }
+        return ""
+    }
+
     internal fun isUsbPrinterConnected(): Boolean {
         return usbConnection != null && usbDevice != null
     }
@@ -1453,7 +1463,7 @@ class MainActivity : Activity() {
                     }
                 }
 
-                sendData(byteArrayOf(0x1B, 0x40, 0x1B, 0x61, 0x01))
+                sendData(byteArrayOf(0x1B, 0x40, 0x1B, 0x61, 0x00))
 
                 val width = printBitmap.width
                 val height = printBitmap.height

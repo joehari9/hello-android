@@ -50,26 +50,20 @@ class ManualReceiptView(
     private lateinit var livePreviewText: TextView
     private lateinit var widthInfoLabel: TextView
 
-    private val rupiahLocale = Locale("in", "ID")
-    private val currencyFormat = NumberFormat.getCurrencyInstance(rupiahLocale).apply {
-        maximumFractionDigits = 0
-    }
-
     private fun formatMoney(amount: Long): String {
-        return currencyFormat.format(amount).replace("Rp", "Rp ").replace("\\s+".toRegex(), " ")
+        val sign = if (amount < 0L) "-" else ""
+        val absVal = kotlin.math.abs(amount)
+        val grouped = absVal.toString().reversed().chunked(3).joinToString(".").reversed()
+        return "${sign}Rp $grouped"
     }
 
-    // Menyesuaikan lebar cetak otomatis berdasarkan target/perangkat aktif tanpa pilihan manual 58/80mm
+    // Menyesuaikan lebar cetak otomatis berdasarkan perangkat/area aktif tanpa tombol pilih manual 58/80mm
     private fun resolveTargetDotWidth(): Int {
-        val targetViewWidth = if (activity.contentContainerWidth > 0) {
-            activity.contentContainerWidth - activity.dp(36)
-        } else {
-            activity.resources.displayMetrics.widthPixels - activity.dp(36)
+        val connectedName = activity.getConnectedPrinterNameForAutoWidth().lowercase(Locale.getDefault())
+        if (connectedName.contains("80") || connectedName.contains("576") || connectedName.contains("72mm")) {
+            return 576
         }
-
-        // Petakan lebar area tampilan ke rentang standar thermal (384 dot untuk sempit, 576 dot untuk lebar)
-        val clampedDots = targetViewWidth.coerceIn(384, 576)
-        return if (clampedDots < 480) 384 else 576
+        return 384
     }
 
     private fun resolveCharsPerLine(dotWidth: Int): Int {
@@ -595,8 +589,24 @@ class ManualReceiptView(
             setPadding(0, 0, 0, activity.dp(8))
         })
 
-        livePreviewText = TextView(activity).apply {
-            textSize = 11f
+        livePreviewText = object : TextView(activity) {
+            override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+                super.onSizeChanged(w, h, oldw, oldh)
+                if (w > 0) {
+                    val cols = resolveCharsPerLine(resolveTargetDotWidth())
+                    val usable = (w - paddingLeft - paddingRight).coerceAtLeast(80)
+                    val sample = "W".repeat(cols)
+                    val probe = Paint(paint)
+                    probe.textSize = 14f
+                    val mw = probe.measureText(sample)
+                    if (mw > 0f) {
+                        val fittedPx = (14f * (usable.toFloat() / mw)) * 0.95f
+                        setTextSize(android.util.TypedValue.COMPLEX_UNIT_PX, fittedPx.coerceIn(10f, 36f))
+                    }
+                }
+            }
+        }.apply {
+            textSize = 10f
             typeface = Typeface.MONOSPACE
             setTextColor(Color.BLACK)
             setBackgroundColor(Color.WHITE)
