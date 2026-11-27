@@ -410,7 +410,7 @@ class PrintReceiptView(
         val src = lastSourceBitmap
         if (src != null) {
             val result = processReceipt(src, selectedPaperWidthPx)
-            processedBitmap = result
+            replaceProcessedBitmap(result)
             pdfPreview.setImageBitmap(result)
             previewPlaceholder.visibility = View.GONE
             pdfPreview.visibility = View.VISIBLE
@@ -464,10 +464,13 @@ class PrintReceiptView(
                             PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY
                         )
 
+                        lastSourceBitmap?.let { old ->
+                            if (!old.isRecycled) old.recycle()
+                        }
                         lastSourceBitmap = sourceBitmap
 
                         val result = processReceipt(sourceBitmap, selectedPaperWidthPx)
-                        processedBitmap = result
+                        replaceProcessedBitmap(result)
 
                         pdfPreview.setImageBitmap(result)
                         previewPlaceholder.visibility = View.GONE
@@ -485,7 +488,24 @@ class PrintReceiptView(
         }
     }
 
+    private fun replaceProcessedBitmap(newBitmap: Bitmap) {
+        val old = processedBitmap
+        processedBitmap = newBitmap
+        if (old != null && old !== newBitmap && !old.isRecycled) {
+            old.recycle()
+        }
+    }
+
     private fun processReceipt(source: Bitmap, targetWidth: Int): Bitmap {
+        return if (targetWidth == 576) {
+            process80mm(source, targetWidth)
+        } else {
+            process58mm(source, 384)
+        }
+    }
+
+    // Logika 58mm dipertahankan agar tidak berubah dari versi yang sudah jalan
+    private fun process58mm(source: Bitmap, targetWidth: Int): Bitmap {
         val cropX = 0
         val cropY = 35
         val cropWidth = source.width
@@ -496,7 +516,66 @@ class PrintReceiptView(
         }
 
         val cropped = Bitmap.createBitmap(source, cropX, cropY, cropWidth, cropHeight)
+        val trimmed = trimWhitespace(cropped)
+        if (trimmed !== cropped) cropped.recycle()
 
+        val rotated = rotateBitmap(trimmed, -90f)
+        if (rotated !== trimmed) trimmed.recycle()
+
+        activity.updateStatusText(
+            "58mm Trim: ${trimmed.width}x${trimmed.height} | Rotasi: ${rotated.width}x${rotated.height}"
+        )
+
+        val newHeight = (rotated.height * targetWidth.toFloat() / rotated.width)
+            .toInt()
+            .coerceAtLeast(1)
+
+        val resized = Bitmap.createScaledBitmap(rotated, targetWidth, newHeight, true)
+        if (resized !== rotated) rotated.recycle()
+
+        val binary = toMonochromeBitmap(resized, threshold = 255 * 0.65)
+        if (binary !== resized) resized.recycle()
+
+        val finalRotation = rotateBitmap(binary, 180f)
+        if (finalRotation !== binary) binary.recycle()
+
+        return addSideBorders(finalRotation, targetWidth)
+    }
+
+    // Logika khusus 80mm: area crop lebih lebar dan langsung ke lebar 576 px
+    private fun process80mm(source: Bitmap, targetWidth: Int): Bitmap {
+        val cropX = 0
+        val cropY = 20
+        val cropWidth = source.width
+        // Ambil area lebih tinggi dibanding 58mm agar bagian resi yang melebar tidak terpotong sempit
+        val cropHeight = minOf((source.height * 0.65f).toInt(), source.height - cropY)
+
+        require(cropHeight > 0) {
+            "Ukuran PDF terlalu kecil untuk crop 80mm"
+        }
+
+        val cropped = Bitmap.createBitmap(source, cropX, cropY, cropWidth, cropHeight)
+        val trimmed = trimWhitespace(cropped)
+        if (trimmed !== cropped) cropped.recycle()
+
+        activity.updateStatusText(
+            "80mm Crop & Trim: ${trimmed.width}x${trimmed.height}"
+        )
+
+        val newHeight = (trimmed.height * targetWidth.toFloat() / trimmed.width)
+            .toInt()
+            .coerceAtLeast(1)
+
+        val resized = Bitmap.createScaledBitmap(trimmed, targetWidth, newHeight, true)
+        if (resized !== trimmed) trimmed.recycle()
+
+        val binary = toMonochromeBitmap(resized, threshold = 255 * 0.65)
+        if (binary !== resized) resized.recycle()
+
+        return addSideBorders(binary, targetWidth)
+    }
+
+    private fun trimWhitespace(cropped: Bitmap): Bitmap {
         val rowCounts = IntArray(cropped.height)
         val colCounts = IntArray(cropped.width)
 
@@ -537,46 +616,41 @@ class PrintReceiptView(
             "Isi resi tidak ditemukan"
         }
 
-        val trimmed = Bitmap.createBitmap(
+        return Bitmap.createBitmap(
             cropped,
             minX,
             minY,
             maxX - minX + 1,
             maxY - minY + 1
         )
+    }
 
-        val rotated = rotateBitmap(trimmed, -90f)
-        activity.updateStatusText(
-            "Trim: ${trimmed.width}x${trimmed.height} | Rotasi: ${rotated.width}x${rotated.height}"
-        )
+    private fun toMonochromeBitmap(source: Bitmap, threshold: Double): Bitmap {
+        val width = source.width
+        val height = source.height
+        val binary = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
 
-        val newHeight = (rotated.height * targetWidth.toFloat() / rotated.width)
-            .toInt()
-            .coerceAtLeast(1)
-
-        val resized = Bitmap.createScaledBitmap(rotated, targetWidth, newHeight, true)
-
-        val binary = Bitmap.createBitmap(targetWidth, newHeight, Bitmap.Config.ARGB_8888)
-        for (y in 0 until newHeight) {
-            for (x in 0 until targetWidth) {
-                val pixel = resized.getPixel(x, y)
+        for (y in 0 until height) {
+            for (x in 0 until width) {
+                val pixel = source.getPixel(x, y)
                 val r = Color.red(pixel)
                 val g = Color.green(pixel)
                 val b = Color.blue(pixel)
-                val gray = (0.299 * r + 0.587 * g + 0.114 * b).toInt()
-                val value = if (gray < 255 * 0.65) 0 else 255
+                val gray = (0.299 * r + 0.587 * g + 0.114 * b)
+                val value = if (gray < threshold) 0 else 255
                 binary.setPixel(x, y, Color.rgb(value, value, value))
             }
         }
+        return binary
+    }
 
-        val finalRotation = rotateBitmap(binary, 180f)
-
-        val result = Bitmap.createBitmap(targetWidth, finalRotation.height, Bitmap.Config.ARGB_8888)
+    private fun addSideBorders(contentBitmap: Bitmap, targetWidth: Int): Bitmap {
+        val result = Bitmap.createBitmap(targetWidth, contentBitmap.height, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(result)
         canvas.drawColor(Color.WHITE)
 
         val paint = Paint()
-        canvas.drawBitmap(finalRotation, 0f, 0f, paint)
+        canvas.drawBitmap(contentBitmap, 0f, 0f, paint)
 
         val borderPaint = Paint().apply {
             color = Color.BLACK
