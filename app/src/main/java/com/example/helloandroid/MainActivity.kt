@@ -78,10 +78,11 @@ class MainActivity : Activity() {
 
     // CONTAINER SUB-HALAMAN DINAMIS
     private lateinit var contentContainer: FrameLayout
-    private var activeSubPage: String = "HOME" // "HOME", "PRINT_RECEIPT", "MANUAL_RECEIPT", "PRINT_IMAGE"
+    private var activeSubPage: String = "HOME" // "HOME", "PRINT_RECEIPT", "MANUAL_RECEIPT", "PRINT_IMAGE", "PRINT_QR_BARCODE"
     private var printReceiptController: PrintReceiptView? = null
     private var manualReceiptController: ManualReceiptView? = null
     private var printImageController: PrintImageView? = null
+    private var printQrBarcodeController: PrintQrBarcodeView? = null
     internal var contentContainerWidth: Int = 0
 
     private var backPressedTime = 0L
@@ -619,7 +620,7 @@ class MainActivity : Activity() {
         }
 
         val appSubtitle = TextView(this).apply {
-            text = "THERMAL PRINT STUDIO"
+            text = "THERMAL PRINT STUDIO  •  58MM"
             textSize = 10f
             letterSpacing = 0.08f
             typeface = Typeface.DEFAULT_BOLD
@@ -1135,14 +1136,14 @@ class MainActivity : Activity() {
         }
 
         val tileOtherSoon = buildMenuTile(
-            title = "Other (Soon)",
-            subtitle = "Fitur tambahan",
+            title = "QR / Barcode",
+            subtitle = "Auto 58mm / 80mm",
             iconRes = null,
-            fallbackEmoji = "⚙",
+            fallbackEmoji = "▦",
             accentColor = colWarning,
-            isComingSoon = true
+            isComingSoon = false
         ) {
-            Toast.makeText(this, "Fitur lainnya masih dalam pengembangan", Toast.LENGTH_SHORT).show()
+            openPrintQrBarcodeSubPage()
         }
 
         row2.addView(tilePrintImage, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply {
@@ -1158,6 +1159,16 @@ class MainActivity : Activity() {
         homeLayout.addView(row2, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply {
             bottomMargin = dp(20)
         })
+
+        homeLayout.addView(
+            TextView(this).apply {
+                text = "JZ RECEIPT PRINTER  •  ESC/POS THERMAL ENGINE"
+                textSize = 10f
+                letterSpacing = 0.08f
+                gravity = Gravity.CENTER
+                setTextColor(colTextMuted)
+            }
+        )
 
         contentContainer.addView(
             homeLayout,
@@ -1184,6 +1195,29 @@ class MainActivity : Activity() {
 
         contentContainer.addView(
             manualReceiptController!!.buildView(),
+            FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT)
+        )
+    }
+
+    // =========================================================================
+    // NAVIGASI KE SUB-HALAMAN QR CODE / BARCODE (FILE TERPISAH: PrintQrBarcodeView.kt)
+    // =========================================================================
+    private fun openPrintQrBarcodeSubPage() {
+        activeSubPage = "PRINT_QR_BARCODE"
+        contentContainer.removeAllViews()
+
+        if (printQrBarcodeController == null) {
+            printQrBarcodeController = PrintQrBarcodeView(
+                activity = this,
+                onBackToHome = { showHomeMenu() },
+                onPrintQrOrBarcodeBitmap = { bitmapToPrint ->
+                    printProcessedBitmap(bitmapToPrint)
+                }
+            )
+        }
+
+        contentContainer.addView(
+            printQrBarcodeController!!.buildView(),
             FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT)
         )
     }
