@@ -77,31 +77,69 @@ class ManualReceiptView(
         return ((dotWidth * 32) / 384).coerceIn(32, 48)
     }
 
-    private fun formatTwoColumns(left: String, right: String, width: Int): String {
-        val cleanLeft = left.trim()
-        val cleanRight = right.trim()
-        if (cleanLeft.length + cleanRight.length + 1 <= width) {
-            val spaces = width - cleanLeft.length - cleanRight.length
-            return cleanLeft + " ".repeat(spaces) + cleanRight
+    private data class ReceiptLine(
+        val left: String,
+        val right: String = "",
+        val align: Paint.Align = Paint.Align.LEFT,
+        val bold: Boolean = false
+    )
+
+    private fun wrapTextToLines(text: String, maxChars: Int): List<String> {
+        val clean = text.trim()
+        if (clean.isEmpty()) return emptyList()
+        if (clean.length <= maxChars) return listOf(clean)
+
+        val words = clean.split("\\s+".toRegex())
+        val out = mutableListOf<String>()
+        var current = ""
+
+        for (w in words) {
+            if (w.length > maxChars) {
+                if (current.isNotEmpty()) {
+                    out.add(current)
+                    current = ""
+                }
+                var start = 0
+                while (start < w.length) {
+                    val end = minOf(start + maxChars, w.length)
+                    out.add(w.substring(start, end))
+                    start = end
+                }
+                continue
+            }
+            val candidate = if (current.isEmpty()) w else "$current $w"
+            if (candidate.length <= maxChars) {
+                current = candidate
+            } else {
+                out.add(current)
+                current = w
+            }
         }
-        val maxLeft = (width - cleanRight.length - 1).coerceAtLeast(1)
-        val trimmedLeft = if (cleanLeft.length > maxLeft) {
-            cleanLeft.take((maxLeft - 1).coerceAtLeast(1)) + "."
-        } else {
-            cleanLeft
-        }
-        val spaces = (width - trimmedLeft.length - cleanRight.length).coerceAtLeast(1)
-        return trimmedLeft + " ".repeat(spaces) + cleanRight
+        if (current.isNotEmpty()) out.add(current)
+        return out
     }
 
-    private fun centerText(text: String, width: Int): String {
+    private fun fitLeftRightText(left: String, right: String, maxChars: Int): String {
+        val l = left.trim()
+        val r = right.trim()
+        if (r.isEmpty()) return l.take(maxChars)
+        if (l.length + r.length + 1 <= maxChars) {
+            return l + " ".repeat(maxChars - l.length - r.length) + r
+        }
+        val availLeft = (maxChars - r.length - 1).coerceAtLeast(1)
+        val trimmedL = if (l.length > availLeft) l.take((availLeft - 1).coerceAtLeast(1)) + "." else l
+        val gap = (maxChars - trimmedL.length - r.length).coerceAtLeast(1)
+        return trimmedL + " ".repeat(gap) + r
+    }
+
+    private fun fitCenterText(text: String, maxChars: Int): String {
         val clean = text.trim()
-        if (clean.length >= width) return clean.take(width)
-        val pad = (width - clean.length) / 2
+        if (clean.length >= maxChars) return clean.take(maxChars)
+        val pad = (maxChars - clean.length) / 2
         return " ".repeat(pad) + clean
     }
 
-    private fun buildReceiptLines(): List<String> {
+    private fun buildReceiptStructuredLines(): List<ReceiptLine> {
         val dotWidth = resolveTargetDotWidth()
         val cols = resolveCharsPerLine(dotWidth)
         val divider = "-".repeat(cols)
@@ -114,41 +152,73 @@ class ManualReceiptView(
 
         val nowStr = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(Date())
         val total = items.sumOf { it.subtotal }
-        val paidRaw = paidInput.text.toString().replace("[^0-9]".toRegex(), "").toLongOrNull() ?: 0L
-        val paid = if (paidRaw == 0L && total > 0L) total else paidRaw
-        val change = (paid - total).coerceAtLeast(0L)
+        val paidDigits = paidInput.text.toString().replace("[^0-9]".toRegex(), "")
+        val paidIsFilled = paidDigits.isNotEmpty()
+        val paid = if (paidIsFilled) (paidDigits.toLongOrNull() ?: 0L) else 0L
+        val change = if (paidIsFilled && paid >= total) (paid - total) else 0L
 
-        val lines = mutableListOf<String>()
-        lines.add(centerText(storeName.uppercase(Locale.getDefault()), cols))
+        val out = mutableListOf<ReceiptLine>()
+
+        // Header selalu di tengah (CENTER) dan di-wrap agar tidak terpotong
+        for (line in wrapTextToLines(storeName.uppercase(Locale.getDefault()), cols)) {
+            out.add(ReceiptLine(left = line, align = Paint.Align.CENTER, bold = true))
+        }
         if (storeAddress.isNotEmpty()) {
-            lines.add(centerText(storeAddress, cols))
+            for (line in wrapTextToLines(storeAddress, cols)) {
+                out.add(ReceiptLine(left = line, align = Paint.Align.CENTER))
+            }
         }
         if (storePhone.isNotEmpty()) {
-            lines.add(centerText("Telp: $storePhone", cols))
-        }
-        lines.add(doubleDivider)
-        lines.add(formatTwoColumns("Tgl: $nowStr", "Auto ${dotWidth}px", cols))
-        lines.add(divider)
-
-        if (items.isEmpty()) {
-            lines.add(centerText("(Belum ada item ditambahkan)", cols))
-        } else {
-            items.forEachIndexed { idx, item ->
-                val itemHeader = "${idx + 1}. ${item.name}"
-                lines.add(itemHeader.take(cols))
-                val qtyPrice = "  ${item.qty} x ${formatMoney(item.price)}"
-                lines.add(formatTwoColumns(qtyPrice, formatMoney(item.subtotal), cols))
+            for (line in wrapTextToLines("Telp: $storePhone", cols)) {
+                out.add(ReceiptLine(left = line, align = Paint.Align.CENTER))
             }
         }
 
-        lines.add(divider)
-        lines.add(formatTwoColumns("TOTAL", formatMoney(total), cols))
-        lines.add(formatTwoColumns("BAYAR", formatMoney(paid), cols))
-        lines.add(formatTwoColumns("KEMBALI", formatMoney(change), cols))
-        lines.add(doubleDivider)
-        lines.add(centerText(footerNote, cols))
-        lines.add("")
-        return lines
+        out.add(ReceiptLine(left = doubleDivider, align = Paint.Align.CENTER))
+        out.add(ReceiptLine(left = "Tgl: $nowStr", right = "Auto", align = Paint.Align.LEFT))
+        out.add(ReceiptLine(left = divider, align = Paint.Align.CENTER))
+
+        if (items.isEmpty()) {
+            out.add(ReceiptLine(left = "(Belum ada item ditambahkan)", align = Paint.Align.CENTER))
+        } else {
+            items.forEachIndexed { idx, item ->
+                val titleLines = wrapTextToLines("${idx + 1}. ${item.name}", cols)
+                titleLines.forEachIndexed { lineIdx, tLine ->
+                    out.add(ReceiptLine(left = if (lineIdx == 0) tLine else "  $tLine", align = Paint.Align.LEFT, bold = lineIdx == 0))
+                }
+                out.add(
+                    ReceiptLine(
+                        left = "  ${item.qty} x ${formatMoney(item.price)}",
+                        right = formatMoney(item.subtotal),
+                        align = Paint.Align.LEFT
+                    )
+                )
+            }
+        }
+
+        out.add(ReceiptLine(left = divider, align = Paint.Align.CENTER))
+        out.add(ReceiptLine(left = "TOTAL", right = formatMoney(total), align = Paint.Align.LEFT, bold = true))
+        out.add(ReceiptLine(left = "BAYAR", right = formatMoney(paid), align = Paint.Align.LEFT))
+        out.add(ReceiptLine(left = "KEMBALI", right = formatMoney(change), align = Paint.Align.LEFT))
+        out.add(ReceiptLine(left = doubleDivider, align = Paint.Align.CENTER))
+
+        for (line in wrapTextToLines(footerNote, cols)) {
+            out.add(ReceiptLine(left = line, align = Paint.Align.CENTER))
+        }
+        out.add(ReceiptLine(left = "", align = Paint.Align.LEFT))
+        return out
+    }
+
+    private fun buildPreviewString(): String {
+        val dotWidth = resolveTargetDotWidth()
+        val cols = resolveCharsPerLine(dotWidth)
+        return buildReceiptStructuredLines().joinToString("\n") { rl ->
+            when {
+                rl.right.isNotEmpty() -> fitLeftRightText(rl.left, rl.right, cols)
+                rl.align == Paint.Align.CENTER -> fitCenterText(rl.left, cols)
+                else -> rl.left
+            }
+        }
     }
 
     private fun refreshAll() {
@@ -157,12 +227,13 @@ class ManualReceiptView(
         widthInfoLabel.text = "Lebar Otomatis: ${dotWidth}px ($cols kolom)"
 
         val total = items.sumOf { it.subtotal }
-        val paidRaw = paidInput.text.toString().replace("[^0-9]".toRegex(), "").toLongOrNull() ?: 0L
-        val paid = if (paidRaw == 0L && total > 0L) total else paidRaw
-        val change = (paid - total).coerceAtLeast(0L)
+        val paidDigits = paidInput.text.toString().replace("[^0-9]".toRegex(), "")
+        val paidIsFilled = paidDigits.isNotEmpty()
+        val paid = if (paidIsFilled) (paidDigits.toLongOrNull() ?: 0L) else 0L
+        val change = if (paidIsFilled && paid >= total) (paid - total) else 0L
 
         summaryText.text = "Item: ${items.size}  •  Total: ${formatMoney(total)}  •  Kembali: ${formatMoney(change)}"
-        livePreviewText.text = buildReceiptLines().joinToString("\n")
+        livePreviewText.text = buildPreviewString()
 
         itemListContainer.removeAllViews()
         items.forEach { item ->
@@ -224,38 +295,69 @@ class ManualReceiptView(
     }
 
     private fun renderReceiptBitmap(): Bitmap {
-        val lines = buildReceiptLines()
+        val structured = buildReceiptStructuredLines()
         val dotWidth = resolveTargetDotWidth()
         val cols = resolveCharsPerLine(dotWidth)
 
-        val horizontalPadding = 16
+        // Margin aman ekstra agar tidak terpotong mekanisme roll 58mm
+        val horizontalPadding = 24
         val verticalPadding = 20
-        val usableWidth = dotWidth - (horizontalPadding * 2)
+        val usableWidth = (dotWidth - (horizontalPadding * 2)).coerceAtLeast(120)
 
-        val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        val regularPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = Color.BLACK
             typeface = Typeface.MONOSPACE
             textSize = 22f
         }
 
-        // Sesuaikan ukuran font monospace agar muat pas persis dalam `cols` karakter di `usableWidth`
-        val sampleLine = "M".repeat(cols)
-        val measured = paint.measureText(sampleLine)
+        // Kalibrasi ukuran font berdasarkan lebar karakter terlebar (W/M) agar tidak pernah melewati usableWidth
+        val widestSample = "W".repeat(cols)
+        val measured = regularPaint.measureText(widestSample)
         if (measured > 0f) {
-            paint.textSize = paint.textSize * (usableWidth.toFloat() / measured)
+            regularPaint.textSize = (regularPaint.textSize * (usableWidth.toFloat() / measured)) * 0.96f
         }
 
-        val fm = paint.fontMetrics
-        val lineHeight = ((fm.descent - fm.ascent) * 1.15f).toInt().coerceAtLeast(24)
-        val bitmapHeight = (lines.size * lineHeight) + (verticalPadding * 2)
+        val boldPaint = Paint(regularPaint).apply {
+            typeface = Typeface.create(Typeface.MONOSPACE, Typeface.BOLD)
+        }
+
+        val fm = regularPaint.fontMetrics
+        val lineHeight = ((fm.descent - fm.ascent) * 1.18f).toInt().coerceAtLeast(24)
+        val bitmapHeight = (structured.size * lineHeight) + (verticalPadding * 2)
 
         val bitmap = Bitmap.createBitmap(dotWidth, bitmapHeight, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
         canvas.drawColor(Color.WHITE)
 
+        val leftEdge = horizontalPadding.toFloat()
+        val rightEdge = (dotWidth - horizontalPadding).toFloat()
+        val centerX = dotWidth / 2f
+
         var y = verticalPadding - fm.ascent
-        for (line in lines) {
-            canvas.drawText(line, horizontalPadding.toFloat(), y, paint)
+        for (rl in structured) {
+            val p = if (rl.bold) boldPaint else regularPaint
+            when {
+                rl.right.isNotEmpty() -> {
+                    p.textAlign = Paint.Align.LEFT
+                    val maxLeftW = (rightEdge - leftEdge - p.measureText(rl.right) - p.measureText("  ")).coerceAtLeast(10f)
+                    var lText = rl.left.trim()
+                    while (lText.length > 1 && p.measureText(lText) > maxLeftW) {
+                        lText = lText.dropLast(1)
+                    }
+                    canvas.drawText(lText, leftEdge, y, p)
+
+                    p.textAlign = Paint.Align.RIGHT
+                    canvas.drawText(rl.right.trim(), rightEdge, y, p)
+                }
+                rl.align == Paint.Align.CENTER -> {
+                    p.textAlign = Paint.Align.CENTER
+                    canvas.drawText(rl.left.trim(), centerX, y, p)
+                }
+                else -> {
+                    p.textAlign = Paint.Align.LEFT
+                    canvas.drawText(rl.left, leftEdge, y, p)
+                }
+            }
             y += lineHeight
         }
 
