@@ -203,17 +203,44 @@ class ManualReceiptView(
         return out
     }
 
-    private fun buildPreviewString(): String {
-        val dotWidth = resolveTargetDotWidth()
-        val cols = resolveCharsPerLine(dotWidth)
-        return buildReceiptStructuredLines().joinToString("\n") { rl ->
-            when {
-                rl.right.isNotEmpty() -> fitLeftRightText(rl.left, rl.right, cols)
-                rl.align == Paint.Align.CENTER -> fitCenterText(rl.left, cols)
-                else -> rl.left
+private fun buildPreviewString(): CharSequence {
+    val structured = buildReceiptStructuredLines()
+    val cols = resolveCharsPerLine(resolveTargetDotWidth()).coerceAtLeast(16)
+    val sb = android.text.SpannableStringBuilder()
+
+    for ((idx, rl) in structured.withIndex()) {
+        val lineText: String = when {
+            rl.right.isNotEmpty() -> {
+                val leftClean = rl.left.trim()
+                val rightClean = rl.right.trim()
+                val spaceCount = (cols - leftClean.length - rightClean.length).coerceAtLeast(1)
+                leftClean + " ".repeat(spaceCount) + rightClean
             }
+            rl.align == Paint.Align.CENTER -> rl.left.trim()
+            else -> rl.left
+        }
+
+        val start = sb.length
+        sb.append(lineText)
+        val end = sb.length
+
+        if (rl.align == Paint.Align.CENTER && rl.right.isEmpty()) {
+            sb.setSpan(
+                android.text.style.AlignmentSpan.Standard(android.text.Layout.Alignment.ALIGN_CENTER),
+                start,
+                end,
+                android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+        }
+
+        if (idx < structured.lastIndex) {
+            sb.append("\n")
         }
     }
+
+    return sb
+}
+
 
     private fun refreshAll() {
         val dotWidth = resolveTargetDotWidth()
