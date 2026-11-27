@@ -312,7 +312,7 @@ class PrintQrBarcodeView(
             text = "← Kembali"
             textSize = 12.5f
             typeface = Typeface.DEFAULT_BOLD
-            setTextColor(activity.colTextPrimary)
+            setTextColor(activity.colAccentCyan)
             setPadding(activity.dp(12), activity.dp(8), activity.dp(12), activity.dp(8))
             background = activity.rippleRounded(activity.colSurface, 12, activity.colBorder, 1)
             isClickable = true
