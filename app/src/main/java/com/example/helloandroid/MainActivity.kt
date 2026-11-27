@@ -78,9 +78,10 @@ class MainActivity : Activity() {
 
     // CONTAINER SUB-HALAMAN DINAMIS
     private lateinit var contentContainer: FrameLayout
-    private var activeSubPage: String = "HOME" // "HOME", "PRINT_RECEIPT", "MANUAL_RECEIPT"
+    private var activeSubPage: String = "HOME" // "HOME", "PRINT_RECEIPT", "MANUAL_RECEIPT", "PRINT_IMAGE"
     private var printReceiptController: PrintReceiptView? = null
     private var manualReceiptController: ManualReceiptView? = null
+    private var printImageController: PrintImageView? = null
     internal var contentContainerWidth: Int = 0
 
     private var backPressedTime = 0L
@@ -103,6 +104,7 @@ class MainActivity : Activity() {
     companion object {
         private const val REQUEST_BT = 100
         internal const val REQUEST_PDF = 200
+        internal const val REQUEST_IMAGE = 250
         internal const val APP_WATERMARK = "Generate by: JZ Receipt Printer"
         private const val ACTION_USB_PERMISSION = "com.example.helloandroid.USB_PERMISSION"
         private const val REQUEST_USB = 300
@@ -1127,9 +1129,9 @@ class MainActivity : Activity() {
             iconRes = R.drawable.ic_printer,
             fallbackEmoji = "🖼",
             accentColor = colAccentBlue,
-            isComingSoon = true
+            isComingSoon = false
         ) {
-            Toast.makeText(this, "Print Image / Logo akan segera hadir", Toast.LENGTH_SHORT).show()
+            openPrintImageSubPage()
         }
 
         val tileOtherSoon = buildMenuTile(
@@ -1192,6 +1194,37 @@ class MainActivity : Activity() {
 
         contentContainer.addView(
             manualReceiptController!!.buildView(),
+            FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT)
+        )
+    }
+
+    // =========================================================================
+    // NAVIGASI KE SUB-HALAMAN PRINT IMAGE / LOGO (FILE TERPISAH: PrintImageView.kt)
+    // =========================================================================
+    private fun openPrintImageSubPage() {
+        activeSubPage = "PRINT_IMAGE"
+        contentContainer.removeAllViews()
+
+        if (printImageController == null) {
+            printImageController = PrintImageView(
+                activity = this,
+                onBackToHome = { showHomeMenu() },
+                onPickImage = {
+                    val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+                        addCategory(Intent.CATEGORY_OPENABLE)
+                        type = "image/*"
+                    }
+                    @Suppress("DEPRECATION")
+                    startActivityForResult(intent, REQUEST_IMAGE)
+                },
+                onPrintImageBitmap = { bitmapToPrint ->
+                    printImageAutoWidth(bitmapToPrint)
+                }
+            )
+        }
+
+        contentContainer.addView(
+            printImageController!!.buildView(),
             FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT)
         )
     }
@@ -1426,6 +1459,49 @@ class MainActivity : Activity() {
     // =========================================================================
     // FUNGSI CETAK ESC/POS (DIPANGGIL DARI SUB-HALAMAN)
     // =========================================================================
+    internal fun fitBitmapToThermalWidth(
+        source: Bitmap,
+        targetDotWidth: Int = resolveTargetDotWidthForBitmap(),
+        horizontalMarginPx: Int = 16
+    ): Bitmap {
+        val safeTargetWidth = targetDotWidth.coerceIn(240, 832)
+        val innerMaxWidth = (safeTargetWidth - (horizontalMarginPx * 2)).coerceAtLeast(120)
+
+        val srcW = source.width.coerceAtLeast(1)
+        val srcH = source.height.coerceAtLeast(1)
+        val scale = innerMaxWidth.toFloat() / srcW.toFloat()
+
+        val scaledW = (srcW * scale).toInt().coerceAtLeast(1).coerceAtMost(innerMaxWidth)
+        val scaledH = (srcH * scale).toInt().coerceAtLeast(1)
+
+        val scaledBitmap = Bitmap.createScaledBitmap(source, scaledW, scaledH, true)
+        val outBitmap = Bitmap.createBitmap(safeTargetWidth, scaledH + (horizontalMarginPx * 2), Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(outBitmap)
+        canvas.drawColor(Color.WHITE)
+
+        val left = ((safeTargetWidth - scaledW) / 2f).coerceAtLeast(0f)
+        canvas.drawBitmap(scaledBitmap, left, horizontalMarginPx.toFloat(), null)
+
+        if (scaledBitmap != source) {
+            scaledBitmap.recycle()
+        }
+        return outBitmap
+    }
+
+    internal fun resolveTargetDotWidthForBitmap(): Int {
+        val name = getConnectedPrinterNameForAutoWidth().lowercase(java.util.Locale.getDefault())
+        return if (name.contains("80") || name.contains("576") || name.contains("72mm")) {
+            576
+        } else {
+            384
+        }
+    }
+
+    internal fun printImageAutoWidth(bitmap: Bitmap, horizontalMarginPx: Int = 16) {
+        val fitted = fitBitmapToThermalWidth(bitmap, resolveTargetDotWidthForBitmap(), horizontalMarginPx)
+        printProcessedBitmap(fitted)
+    }
+
     internal fun printProcessedBitmap(bitmap: Bitmap) {
         val printBitmap = addWatermark(bitmap, APP_WATERMARK)
         val useUsb = isUsbPrinterConnected()
@@ -1608,6 +1684,11 @@ class MainActivity : Activity() {
             val uri = data?.data ?: return
             if (activeSubPage == "PRINT_RECEIPT") {
                 printReceiptController?.handleSelectedPdf(uri)
+            }
+        } else if (requestCode == REQUEST_IMAGE && resultCode == RESULT_OK) {
+            val uri = data?.data ?: return
+            if (activeSubPage == "PRINT_IMAGE") {
+                printImageController?.handleSelectedImage(uri)
             }
         }
     }
