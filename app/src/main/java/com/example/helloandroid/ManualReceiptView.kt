@@ -739,7 +739,7 @@ private fun buildPreviewString(): CharSequence {
         previewCard.addView(actionRow)
 
         container.addView(previewCard)
-        saveHeaderFooterPrefs()
+        loadHeaderFooterPrefs()
         refreshAll()
         return container
     }
